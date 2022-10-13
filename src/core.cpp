@@ -221,6 +221,37 @@ var& var::operator=(const var& other)
     return *this;
 }
 
+var var::operator+(const std::string& s) const
+{
+    switch (type)
+    {
+    case var::var_type::string:{
+        var new_var = *this;
+        new_var += s;
+        return new_var;
+    }
+        break;
+    default:
+        throw std::runtime_error(std::format("undefined method 'operator+(std::string)' for {}", type));
+        break;
+    }
+}
+
+var& var::operator+=(const std::string& s)
+{
+    switch (type)
+    {
+    case var::var_type::string:{
+        str += s;
+        return *this;
+    }
+        break;
+    default:
+        throw std::runtime_error(std::format("undefined method 'operator+=(std::string)' for {}", type));
+        break;
+    }
+}
+
 bool var::operator==(const long& l) const
 {
     return integer == l;
@@ -503,6 +534,9 @@ size_t var::size() const
         case var_type::array:
             return array.size();
         break;
+        default:
+            throw std::runtime_error(std::format("undefined method 'size' for {}", type));
+        break;
     }
 }
 
@@ -513,7 +547,7 @@ var var::strftime(std::string_view __format)
         case var_type::integer: {
             time_t t = integer;
 
-            std::tm* tm = localtime(&t);
+            std::tm* tm = gmtime(&t);
             if(!std::strftime(s_buffer, 100, __format.data(), tm)) {
                 throw std::runtime_error("strftime: error");
             }
@@ -527,4 +561,21 @@ var var::strftime(std::string_view __format)
     }
 }
 
+var var::capitalize()
+{
+    if(type != var_type::string)
+    {
+        throw std::runtime_error(std::format("undefined method 'capitalize' for {}", type));
+    }
+
+    return uva::string::capitalize(str);
+}
+
 //END VAR
+
+//CORE
+var uva::core::now()
+{
+    return time(nullptr);
+}
+//END CORE

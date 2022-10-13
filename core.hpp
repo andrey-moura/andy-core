@@ -6,6 +6,9 @@
 #include <initializer_list>
 #include <format>
 #include <time.h>
+#include <filesystem>
+
+#include <string.hpp>
 
 namespace uva
 {
@@ -68,6 +71,8 @@ namespace uva
             var& operator=(const unsigned char* c);
             var& operator=(const std::string& s);
 
+            var operator+(const std::string& s) const;
+            var& operator+=(const std::string& s);
 
             bool operator==(const var& other) const;
             bool operator==(const long& l) const;
@@ -102,7 +107,7 @@ namespace uva
                 switch (var.type)
                 {
                 case var::var_type::null_type:
-                        throw std::runtime_error("no such operator/(std::filesystem::path, var) which takes var(null)");
+                        throw std::runtime_error("undefined method 'friend operator/(std::filesystem::path, var)' for null");
                     break;
                 default:
                     return path / var.to_s();
@@ -295,9 +300,38 @@ namespace uva
              */
             var strftime(std::string_view __format);
 //END DATE TIME FUNCTIONS
+
+//STRING FUNCTIONS
+            /**
+             *  @brief Converts the starting letters of all words of this string to it's uppercase representation.
+             */
+            var capitalize();
+            /**
+             *  @brief Formats @a __args according to the format in self.
+             *  @param  __args The objects to be formated.
+             *  @return The format in self with @a __args formating applied.
+             */
+            template<class... Args>
+            var format(Args... __args)
+            {
+                switch (type)
+                {
+                case var::var_type::string:
+                    #ifdef USE_FMT_FORMT
+                        return vformat(str, std::make_format_args(__args...));
+                    #else
+                        return std::format(str, std::forward<Args>(__args)...);
+                    #endif       
+                break;
+                default:
+                    throw std::runtime_error(std::format("undefined method 'format' for {}", type));
+                break;
+                }
+            }
+//END STRING FUNCTIONS
         };
 
-        var now() { return time(nullptr); }
+        var now();
     };
 };
 
@@ -363,6 +397,8 @@ using namespace uva::core;
             break;
             case var::var_type::null_type:
                 return std::format_to(ctx.out(), "{}", "null");
+            default:
+                throw std::runtime_error(std::format("invalid value of var::var_type: {}", (int)type));
             break;
         };
     }

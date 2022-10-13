@@ -9,6 +9,8 @@ add_library(uva-core
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
+target_link_libraries(uva-core uva-string)
+
 #Tests
 
 #Create tests for parent project
