@@ -571,6 +571,26 @@ var var::capitalize()
     return uva::string::capitalize(str);
 }
 
+var var::downcase()
+{
+    if(type != var_type::string)
+    {
+        throw std::runtime_error(std::format("undefined method 'downcase' for {}", type));
+    }
+
+    return uva::string::tolower(str);
+}
+
+var var::pluralize()
+{
+    if(type != var_type::string)
+    {
+        throw std::runtime_error(std::format("undefined method 'pluralize' for {}", type));
+    }
+
+    return uva::string::pluralize(str);
+}
+
 //END VAR
 
 //CORE

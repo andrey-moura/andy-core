@@ -304,8 +304,19 @@ namespace uva
 //STRING FUNCTIONS
             /**
              *  @brief Converts the starting letters of all words of this string to it's uppercase representation.
+             *  @return A uppercased copy of self.
              */
             var capitalize();
+            /**
+             *  @brief Add suffix of plural to the word in self.
+             *  @return A pluralized copy of self.
+             */
+            var downcase();
+            /**
+             *  @brief Converts all characters in the string to it's lowercase.
+             *  @return A downcased copy of self.
+             */
+            var pluralize();
             /**
              *  @brief Formats @a __args according to the format in self.
              *  @param  __args The objects to be formated.
