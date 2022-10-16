@@ -65,6 +65,23 @@ var::var(std::initializer_list<var>&& l)
     
 }
 
+var::var(const var_type& __type)
+{
+    construct_from_var_type(__type);
+}
+
+void var::construct_from_var_type(const var_type& __type)
+{
+    if(__type == var_type::map || __type == var_type::null_type)
+    {
+        type = __type;
+    }
+    else
+    {
+        throw std::runtime_error(std::format("failed to create a var from var_type::{}", __type));
+    }
+}
+
 bool var::is_null() const
 {
     return type == var_type::null_type;
@@ -221,6 +238,12 @@ var& var::operator=(const var& other)
     return *this;
 }
 
+var& var::operator=(const var_type& __type)
+{
+    construct_from_var_type(__type);
+    return *this;
+}
+
 var var::operator+(const std::string& s) const
 {
     switch (type)
@@ -327,7 +350,7 @@ var& var::operator[](const size_t& i)
     return array[i];
 }
 
-var::const_iterator var::begin() const
+var::array_const_iterator var::begin() const
 {
     switch (type)
     {
@@ -340,17 +363,17 @@ var::const_iterator var::begin() const
     }
 }
 
-var::iterator var::begin()
+var::array_iterator var::begin()
 {
     return array.begin();
 }
 
-var::const_iterator var::end() const
+var::array_const_iterator var::end() const
 {
     return array.end();
 }
 
-var::iterator var::end()
+var::array_iterator var::end()
 {
     return array.end();
 }
@@ -381,12 +404,12 @@ void var::push_back(var&& v)
     }
 }
 
-var::iterator var::insert(var::const_iterator __position, var&& __x)
+var::array_iterator var::insert(var::array_const_iterator __position, var&& __x)
 {
     return array.insert(__position, std::move(__x));
 }
 
-var::iterator var::insert(var::iterator __position, var&& __x)
+var::array_iterator var::insert(var::array_iterator __position, var&& __x)
 {
     return array.insert(__position, std::move(__x));
 }
@@ -401,8 +424,11 @@ void var::clear()
         case var_type::array:
             array.clear();
         break;
+        case var_type::map:
+            map.clear();
+        break;
         default:
-            throw std::runtime_error(std::format("undefined method 'clear' for (var_type){}", (size_t)type));
+            throw std::runtime_error(std::format("undefined method 'clear' for {}", type));
         break;
     } 
 }
@@ -424,7 +450,7 @@ bool var::empty() const
 
 }
 
-var::const_iterator var::lower_bound(const var& value) const
+var::array_const_iterator var::lower_bound(const var& value) const
 {
     switch (type)
     {
@@ -439,7 +465,7 @@ var::const_iterator var::lower_bound(const var& value) const
     }
 }
 
-var::iterator var::lower_bound(const var& value)
+var::array_iterator var::lower_bound(const var& value)
 {
     switch (type)
     {
@@ -515,6 +541,32 @@ void var::each(std::function<void(var& value)> __f)
         break;
         default:
             throw std::runtime_error(std::format("undefined method 'each' for (var_type){}", (size_t)type));
+        break;
+    }
+}
+
+var var::join_array(const char& __separator) const
+{ 
+    return uva::string::join(array, __separator);
+}
+var var::join_map(const char& __separator) const
+{
+    //return uva::string::join(map, __separator);
+    return "";
+}
+
+var var::join(const char& __separator) const
+{
+    switch(type)
+    {
+        case var_type::array:
+            return join_array(__separator);
+        break;
+        case var_type::map:
+            return join_map(__separator);
+        break;
+        default:
+            throw std::runtime_error(std::format("undefined method 'join' for {}", type));
         break;
     }
 }

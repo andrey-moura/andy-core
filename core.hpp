@@ -18,10 +18,24 @@ namespace uva
         {
 //ARRAY DEFINITIONS
             using array_type = std::vector<var>;
-            using iterator = array_type::iterator;
-            using const_iterator = array_type::const_iterator;
+            using array_iterator = array_type::iterator;
+            using array_const_iterator = array_type::const_iterator;
 //END ARRAY DEFINITIONS
+//MAP DEFINITIONS
+            using map_type = std::map<var, var>;
+            using map_iterator = map_type::iterator;
+            using map_const_iterator = map_type::const_iterator;
+//ND MAP DEFINITIONS
         public:
+            enum class var_type
+            {
+                null_type,
+                string,
+                integer,
+                real,
+                array,
+                map
+            };
             var();
             var(const var& other) = default;
             var(var&& other);
@@ -33,22 +47,18 @@ namespace uva
             var(const bool& boolean);
             var(const double& d);
             var(std::initializer_list<var>&& l);
-
-            enum class var_type
-            {
-                null_type,
-                string,
-                integer,
-                real,
-                array
-            };
+            var(const var_type& __type);
+        private:
+            void construct_from_var_type(const var_type& __type);
+        public:
 
             var_type type;
 
             std::string str;
             int64_t integer;
             double real;
-            std::vector<var> array;
+            array_type array;
+            map_type map;
         public:
             bool is_null() const;
             std::string to_s() const;
@@ -70,6 +80,7 @@ namespace uva
             var& operator=(const char* c);
             var& operator=(const unsigned char* c);
             var& operator=(const std::string& s);
+            var& operator=(const var_type& __type);
 
             var operator+(const std::string& s) const;
             var& operator+=(const std::string& s);
@@ -146,21 +157,21 @@ namespace uva
             /**
              *  @return         A read-only (constant) iterator that points to the first element in the %vector.
              */
-            const_iterator begin() const;
+            array_const_iterator begin() const;
 
             /**
              *  @return         A read/write iterator that points to the first element in the %vector.
              */
-            iterator begin();
+            array_iterator begin();
             
             /**
              *  @return         A read-only (constant) iterator that points one past the last element in the %vector.
              */
-            const_iterator end() const;
+            array_const_iterator end() const;
             /**
              *  @return         A read/write iterator that points one past the last element in the %vector.
              */
-            iterator end();
+            array_iterator end();
 
             /**
              *  @brief  Add data to the end of the %vector.
@@ -196,7 +207,7 @@ namespace uva
              *  could be expensive for a %vector and if it is frequently
              *  used the user should consider using std::list.
              */
-            iterator insert(const_iterator __position, var&& __x);
+            array_iterator insert(array_const_iterator __position, var&& __x);
             /**
              *  @brief  Inserts given rvalue into %vector before specified iterator.
              *  @param  __position  A const_iterator into the %vector.
@@ -208,16 +219,7 @@ namespace uva
              *  could be expensive for a %vector and if it is frequently
              *  used the user should consider using std::list.
              */
-            iterator insert(iterator __position, var&& __x);
-
-            /**
-             *  Erases all the elements.  Note that this function only erases the
-             *  elements, and that if the elements themselves are pointers, the
-             *  pointed-to memory is not touched in any way.  Managing the pointer is
-             *  the user's responsibility.
-             */
-            void clear();
-
+            array_iterator insert(array_iterator __position, var&& __x);
             /**
              *  @return true if the %vector is empty.
              */
@@ -231,7 +233,7 @@ namespace uva
              *                  than</em> @a val, or end() if every element is less than
              *                  @a val.
              */
-            const_iterator lower_bound(const uva::core::var& __val) const;
+            array_const_iterator lower_bound(const uva::core::var& __val) const;
 
             /**
              *  @brief Finds the first position in which @a val could be inserted
@@ -241,7 +243,7 @@ namespace uva
              *                  than</em> @a val, or end() if every element is less than
              *                  @a val.
              */
-            iterator lower_bound(const uva::core::var& __val);
+            array_iterator lower_bound(const uva::core::var& __val);
 
             /**
              *  @brief Finds the first position in which @a val could be inserted
@@ -253,7 +255,7 @@ namespace uva
              *                  @a val.
              */
             template<typename _Compare>
-            const_iterator lower_bound(const uva::core::var& __val, _Compare __comp) const
+            array_const_iterator lower_bound(const uva::core::var& __val, _Compare __comp) const
             {
                 return std::lower_bound(begin(), end(), __val, __comp);
             }
@@ -267,7 +269,7 @@ namespace uva
              *                  @a val.
              */
             template<typename _Compare>
-            iterator lower_bound(const uva::core::var& __val, _Compare __comp)
+            array_iterator lower_bound(const uva::core::var& __val, _Compare __comp)
             {
                 return std::lower_bound(begin(), end(), __val, __comp);
             }
@@ -286,6 +288,29 @@ namespace uva
             void each_string(std::function<void(uva::core::var& value)> __f);
             public:
 //END ARRAY FUNCTIONS
+
+//ARRAY/MAP FUNCTIONS
+            private:
+                var join_array(const char& __separator) const;
+                var join_map(const char& __separator) const;
+            public:
+            /**
+             *  @brief Join all elements of self in string
+             *  @param  __separator To separe joined elements
+             *  @return A string containing the elements formated to string, separeted with @a __separator
+             */
+            var join(const char& __separator) const;
+//END ARRAY/MAP FUNCTIONS
+
+//ARRAY/STRING/MAP FUNCTIONS
+            /**
+             *  Erases all the elements.  Note that this function only erases the
+             *  elements, and that if the elements themselves are pointers, the
+             *  pointed-to memory is not touched in any way.  Managing the pointer is
+             *  the user's responsibility.
+             */
+            void clear();
+//END ARRAY/STRING/MAP
             /**
              *  @return The number of elements contained by %var if it is a container
              *  otherwise sizeof it.
@@ -349,7 +374,8 @@ namespace uva
 using namespace uva::core;
 
 #define var var
-#define null var()
+#define null var::var_type::null_type
+#define empty_map var::var_type::map
 
 #ifdef USE_FMT_FORMT
     template<>
