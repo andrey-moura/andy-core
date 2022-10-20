@@ -14,6 +14,12 @@ namespace uva
 {
     namespace core
     {
+        struct times_helper
+        {
+            times_helper(size_t __times);
+            size_t times;
+            void operator()(std::function<void()> f) const;
+        };
         class var
         {
 //ARRAY DEFINITIONS
@@ -36,6 +42,7 @@ namespace uva
                 array,
                 map
             };
+            var(std::initializer_list<var> l);
             var();
             var(const var& other) = default;
             var(var&& other);
@@ -46,10 +53,13 @@ namespace uva
             var(const char* str);
             var(const bool& boolean);
             var(const double& d);
-            var(std::initializer_list<var>&& l);
-            var(const var_type& __type);
+            var(const array_type& __array);
+            var(array_type&& __array);
+            var(const var_type& __array);
         private:
-            void construct_from_var_type(const var_type& __type);
+            void construct(const var_type& __type);
+            void construct(var&& var);
+            void construct(array_type&& __array);
         public:
 
             var_type type;
@@ -71,7 +81,9 @@ namespace uva
             operator bool() const;
             operator double() const;
 
+            var& operator=(std::initializer_list<var> __array);
             var& operator=(const var& other);
+            var& operator=(var&& other);
             var& operator=(const bool& b);
             var& operator=(const int& i);
             var& operator=(const int64_t& i);
@@ -80,6 +92,7 @@ namespace uva
             var& operator=(const char* c);
             var& operator=(const unsigned char* c);
             var& operator=(const std::string& s);
+            var& operator=(array_type&& __array);
             var& operator=(const var_type& __type);
 
             var operator+(const std::string& s) const;
@@ -310,6 +323,10 @@ namespace uva
              *  the user's responsibility.
              */
             void clear();
+            /**
+             *   Attempt to preallocate enough memory for specified number of elements.
+            */
+            void reserve(size_t __n);
 //END ARRAY/STRING/MAP
             /**
              *  @return The number of elements contained by %var if it is a container
@@ -373,9 +390,13 @@ namespace uva
 
 using namespace uva::core;
 
+times_helper operator ""_times(unsigned long long times);
+
 #define var var
 #define null var::var_type::null_type
 #define empty_map var::var_type::map
+#define empty_array var::var_type::array
+#define self (*this)
 
 #ifdef USE_FMT_FORMT
     template<>
@@ -432,8 +453,12 @@ using namespace uva::core;
             case var::var_type::real:
                 return std::format_to(ctx.out(), "{}", "real");
             break;
+            case var::var_type::array:
+                return std::format_to(ctx.out(), "{}", "array");
+            break;
             case var::var_type::null_type:
                 return std::format_to(ctx.out(), "{}", "null");
+            break;
             default:
                 throw std::runtime_error(std::format("invalid value of var::var_type: {}", (int)type));
             break;

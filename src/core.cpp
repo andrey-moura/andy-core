@@ -2,6 +2,25 @@
 
 static char s_buffer[100];
 
+times_helper::times_helper(size_t __times)
+    : times(__times)
+{
+
+}
+
+void times_helper::operator()(std::function<void()> f) const
+{
+    for(size_t i = 0; i < times; ++i)
+    {
+        f();
+    }
+}
+
+times_helper operator ""_times(unsigned long long times)
+{
+    return times_helper(times);
+}
+
 //VAR
 
 var::var()
@@ -11,9 +30,8 @@ var::var()
 }
 
 var::var(var&& other)
-    : type(other.type), str(std::move(other.str)), integer(other.integer), real(other.real), array(std::move(other.array))
 {
-
+    construct(std::forward<var&&>(other));
 }
 
 var::var(const uint64_t& _integer)
@@ -59,20 +77,32 @@ var::var(const double& d)
     
 }
 
-var::var(std::initializer_list<var>&& l)
-    : array(std::forward<std::initializer_list<var>&&>(l)), type(var::var_type::array)
+var::var(std::initializer_list<var> l)
+    : array(std::move(l)), type(var::var_type::array)
 {
     
 }
 
-var::var(const var_type& __type)
+var::var(const array_type& __array)
+    : array(__array), type(var::var_type::array)
 {
-    construct_from_var_type(__type);
+
 }
 
-void var::construct_from_var_type(const var_type& __type)
+var::var(array_type&& __array)
+    : array(std::forward<array_type&&>(__array)), type(var::var_type::array)
 {
-    if(__type == var_type::map || __type == var_type::null_type)
+
+}
+
+var::var(const var_type& __type)
+{
+    construct(__type);
+}
+
+void var::construct(const var_type& __type)
+{
+    if(__type == var_type::map || __type == var_type::array || __type == var_type::null_type)
     {
         type = __type;
     }
@@ -80,6 +110,43 @@ void var::construct_from_var_type(const var_type& __type)
     {
         throw std::runtime_error(std::format("failed to create a var from var_type::{}", __type));
     }
+}
+
+void var::construct(var&& __var)
+{
+    switch (__var.type)
+    {
+        case var_type::null_type:
+            type = null;
+        break;
+        case var_type::string:
+            str = std::move(__var.str);
+        break;
+        case var_type::integer:
+            integer = std::move(__var.integer);
+        break;
+        case var_type::real:
+            real = std::move(__var.real);
+        break;
+        case var_type::array:
+            array = std::move(__var.array);
+        break;
+        case var_type::map:
+            map = std::move(__var.map);
+        break;
+    default:
+            throw std::runtime_error(std::format("failed to construct a var from a var with typee {}", __var.type));
+        break;
+    }
+
+    type = __var.type;
+    __var = null;
+}
+
+void var::construct(array_type&& __array)
+{
+    self.array = std::forward<array_type&&>(__array);
+    (*this).type = var_type::array;
 }
 
 bool var::is_null() const
@@ -210,6 +277,12 @@ var& var::operator=(const std::string& s)
     return *this;
 }
 
+var& var::operator=(array_type&& __array)
+{
+    construct(std::forward<array_type&&>(__array));
+    return *this;
+}
+
 var& var::operator=(const bool& b)
 {
     integer = (int64_t)b;
@@ -233,14 +306,30 @@ var& var::operator=(const var& other)
         case var_type::string:
             str = other.str;
             break;
+        default:
+            throw std::runtime_error(std::format("undefined method 'operator=(const var&)' for {}", type));
+        break;
     }
     type = other.type;
     return *this;
 }
 
+var& var::operator=(var&& other)
+{
+    construct(std::forward<var&&>(other));
+    return *this;
+}
+
+var& var::operator=(std::initializer_list<var> __array)
+{
+    array = std::move(__array);
+    type = var_type::array;
+    return *this;
+}
+
 var& var::operator=(const var_type& __type)
 {
-    construct_from_var_type(__type);
+    construct(__type);
     return *this;
 }
 
@@ -429,6 +518,22 @@ void var::clear()
         break;
         default:
             throw std::runtime_error(std::format("undefined method 'clear' for {}", type));
+        break;
+    } 
+}
+
+void var::reserve(size_t __n)
+{
+    switch(type)
+    {
+        case var_type::string:
+            str.reserve(__n);
+        break;
+        case var_type::array:
+            array.reserve(__n);
+        break;
+        default:
+            throw std::runtime_error(std::format("undefined method 'reserve' for {}", type));
         break;
     } 
 }
