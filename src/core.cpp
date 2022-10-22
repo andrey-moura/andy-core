@@ -21,6 +21,16 @@ times_helper operator ""_times(unsigned long long times)
     return times_helper(times);
 }
 
+var operator ""_var(char const* str, std::size_t i)
+{
+    return var(str, i);
+}
+
+var operator ""_percent(unsigned long long d)
+{
+    return var((double)d / 100.0);
+}
+
 //VAR
 
 var::var()
@@ -61,6 +71,12 @@ var::var(const std::string& _str)
 
 var::var(const char* _str)
     : str(_str), type(var::var_type::string)
+{
+
+}
+
+var::var(const char* str, size_t i)
+    : str(str, i), type(var::var_type::string)
 {
 
 }
@@ -382,6 +398,29 @@ bool var::operator==(const std::string& s) const
 bool var::operator==(const bool& b) const
 {
     return b == (bool)integer;
+}
+
+bool var::operator==(const int& other) const
+{
+    switch (type)
+    {
+        case var_type::null_type:
+        case var_type::string:
+        case var_type::array:
+        case var_type::map:    
+            return false;
+        break;
+        case var_type::integer:
+            return integer == other;
+        break;
+        case var_type::real:
+            return ((int)real) == other;
+        break;
+    default:
+        break;
+    }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
 bool var::operator!=(const double& d) const

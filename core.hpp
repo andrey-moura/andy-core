@@ -51,6 +51,7 @@ namespace uva
             var(const std::string& _str);
             var(const time_t& _integer);
             var(const char* str);
+            var(const char* str, size_t i);
             var(const bool& boolean);
             var(const double& d);
             var(const array_type& __array);
@@ -103,6 +104,7 @@ namespace uva
             bool operator==(const double& d) const;
             bool operator==(const std::string& s) const;
             bool operator==(const bool& b) const;
+            bool operator==(const int& other) const;
 
             bool operator!=(const double& d) const;
             bool operator!=(const std::string& s) const;
@@ -391,12 +393,9 @@ namespace uva
 using namespace uva::core;
 
 times_helper operator ""_times(unsigned long long times);
+var          operator ""_var(char const* str, std::size_t i);
+var          operator ""_percent(unsigned long long d);
 
-#define var var
-#define null var::var_type::null_type
-#define empty_map var::var_type::map
-#define empty_array var::var_type::array
-#define self (*this)
 
 #ifdef USE_FMT_FORMT
     template<>
@@ -466,3 +465,10 @@ times_helper operator ""_times(unsigned long long times);
     }
 
 #endif
+
+#define var var
+#define null var::var_type::null_type
+#define empty_map var::var_type::map
+#define empty_array var::var_type::array
+#define self (*this)
+#define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() throw std::runtime_error(std::format("undefined method '{}' for {}", __PRETTY_FUNCTION__, type))
