@@ -10,6 +10,9 @@
 
 #include <string.hpp>
 
+#define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", __PRETTY_FUNCTION__, __type));
+#define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(type)
+
 namespace uva
 {
     namespace core
@@ -44,7 +47,7 @@ namespace uva
             };
             var(std::initializer_list<var> l);
             var();
-            var(const var& other) = default;
+            var(const var& other);
             var(var&& other);
             var(const uint64_t& _integer);
             var(const int& _integer);
@@ -57,19 +60,78 @@ namespace uva
             var(const array_type& __array);
             var(array_type&& __array);
             var(const var_type& __array);
+            ~var();
         private:
             void construct(const var_type& __type);
             void construct(var&& var);
             void construct(array_type&& __array);
         public:
-
             var_type type;
-
-            std::string str;
-            int64_t integer;
-            double real;
-            array_type array;
-            map_type map;
+        private:
+            void* m_value_ptr = nullptr;
+        public:
+            template<typename type>
+            type& cast_to() const
+            {
+                return *((type*)m_value_ptr);
+            }
+            
+            template<var_type __type>
+            const auto& as() const
+            {
+                if constexpr(__type == var_type::null_type)
+                {
+                    VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(var_type::null_type);
+                }
+                if constexpr(__type == var_type::string)
+                {
+                    return cast_to<std::string>();
+                }
+                if constexpr(__type == var_type::integer)
+                {
+                    return cast_to<int64_t>();
+                }
+                if constexpr(__type == var_type::real)
+                {
+                    return cast_to<double>();
+                }
+                if constexpr(__type == var_type::array)
+                {
+                    return cast_to<array_type>();
+                }
+                if constexpr(__type == var_type::map)
+                {
+                    return cast_to<map_type>();
+                }
+            }
+            template<var_type __type>
+            auto& as()
+            {
+                if constexpr(__type == var_type::null_type)
+                {
+                    VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(var_type::null_type);
+                }
+                if constexpr(__type == var_type::string)
+                {
+                    return cast_to<std::string>();
+                }
+                if constexpr(__type == var_type::integer)
+                {
+                    return cast_to<int64_t>();
+                }
+                if constexpr(__type == var_type::real)
+                {
+                    return cast_to<double>();
+                }
+                if constexpr(__type == var_type::array)
+                {
+                    return cast_to<array_type>();
+                }
+                if constexpr(__type == var_type::map)
+                {
+                    return cast_to<map_type>();
+                }
+            }
         public:
             bool is_null() const;
             std::string to_s() const;
@@ -124,19 +186,19 @@ namespace uva
                 stream << holder.to_s();
                 return stream;
             }
-            friend bool operator<(const double& d, const var& h)
+            friend bool operator<(const double& d, const var& __other)
             {
-                return d < h.real;
+                return d < __other.as<var_type::real>();
             }
-            friend std::filesystem::path operator/(const std::filesystem::path& path, const var& var)
+            friend std::filesystem::path operator/(const std::filesystem::path& path, const var& __other)
             {
-                switch (var.type)
+                switch (__other.type)
                 {
                 case var::var_type::null_type:
                         throw std::runtime_error("undefined method 'friend operator/(std::filesystem::path, var)' for null");
                     break;
                 default:
-                    return path / var.to_s();
+                    return path / __other.to_s();
                     break;
                 }
             }
@@ -210,7 +272,6 @@ namespace uva
              *  space available.
              */
             void push_back(var&& __x);
-
             /**
              *  @brief  Inserts given rvalue into %vector before specified iterator.
              *  @param  __position  A const_iterator into the %vector.
@@ -373,9 +434,9 @@ namespace uva
                 {
                 case var::var_type::string:
                     #ifdef USE_FMT_FORMT
-                        return vformat(str, std::make_format_args(__args...));
+                        return vformat(as<var_type::string>(), std::make_format_args(__args...));
                     #else
-                        return std::format(str, std::forward<Args>(__args)...);
+                        return std::format(as<var_type::string>(), std::forward<Args>(__args)...);
                     #endif       
                 break;
                 default:
@@ -471,4 +532,3 @@ var          operator ""_percent(unsigned long long d);
 #define empty_map var::var_type::map
 #define empty_array var::var_type::array
 #define self (*this)
-#define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() throw std::runtime_error(std::format("undefined method '{}' for {}", __PRETTY_FUNCTION__, type))
