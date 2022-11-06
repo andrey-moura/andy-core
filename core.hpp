@@ -10,6 +10,9 @@
 
 #include <string.hpp>
 
+#define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", __PRETTY_FUNCTION__, __type));
+#define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(type)
+
 namespace uva
 {
     namespace core
@@ -22,16 +25,20 @@ namespace uva
         };
         class var
         {
-//ARRAY DEFINITIONS
+            using integer_type = int64_t;
+            using bool_type = int64_t;
+            using real_type = double;
+            using char_type = char;
+
+            using string_type = std::basic_string<char_type>;
+
             using array_type = std::vector<var>;
             using array_iterator = array_type::iterator;
             using array_const_iterator = array_type::const_iterator;
-//END ARRAY DEFINITIONS
-//MAP DEFINITIONS
+
             using map_type = std::map<var, var>;
             using map_iterator = map_type::iterator;
             using map_const_iterator = map_type::const_iterator;
-//ND MAP DEFINITIONS
         public:
             enum class var_type
             {
@@ -42,9 +49,9 @@ namespace uva
                 array,
                 map
             };
-            var(std::initializer_list<var> l);
             var();
-            var(const var& other) = default;
+            var(std::initializer_list<var> l);
+            var(const var& other);
             var(var&& other);
             var(const uint64_t& _integer);
             var(const int& _integer);
@@ -57,19 +64,117 @@ namespace uva
             var(const array_type& __array);
             var(array_type&& __array);
             var(const var_type& __array);
-        private:
-            void construct(const var_type& __type);
-            void construct(var&& var);
-            void construct(array_type&& __array);
+            var(map_type&& __map);
+            ~var();
         public:
+            var_type type = var_type::null_type;
+        private:
+            void* m_value_ptr = nullptr;
+        public:
+            //for debugging
+            #ifndef UVA_DEBUG_LEVEL > 1
+                integer_type* m_integer_ptr = nullptr;
+                real_type* m_real_ptr = nullptr;
+                string_type* m_string_ptr = nullptr;
+                array_type* m_array_ptr = nullptr;
+                map_type* m_map_ptr = nullptr;
+            #endif
+        private:
+            void construct();
+            void construct(void* __ptr);
+            void* __construct();
 
-            var_type type;
+            void reconstruct(const var& var);
+            void reconstruct(var&& var);
+            void reconstruct(const var_type& __type);
 
-            std::string str;
-            int64_t integer;
-            double real;
-            array_type array;
-            map_type map;
+            template<typename type>
+            void reconstruct(const type& __val)
+            {
+                destruct();
+                construct();
+                new(m_value_ptr) type(__val);
+            }
+
+            template<typename type>
+            void reconstruct(const type&& __val)
+            {
+                destruct();
+                construct();
+                new(m_value_ptr) type(std::move(__val));
+            }
+
+            void destruct();
+            void __delete();
+            static constexpr size_t size_for_buffer = std::max({   
+                sizeof(string_type),
+                sizeof(integer_type),
+                sizeof(real_type),
+                sizeof(array_type),
+                sizeof(map_type)
+            });
+        public:
+            template<typename type>
+            type& cast_to() const
+            {
+                return *((type*)m_value_ptr);
+            }
+            template<var_type __type>
+            const auto& as() const
+            {
+                if constexpr(__type == var_type::null_type)
+                {
+                    VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(var_type::null_type);
+                }
+                if constexpr(__type == var_type::string)
+                {
+                    return cast_to<std::string>();
+                }
+                if constexpr(__type == var_type::integer)
+                {
+                    return cast_to<int64_t>();
+                }
+                if constexpr(__type == var_type::real)
+                {
+                    return cast_to<double>();
+                }
+                if constexpr(__type == var_type::array)
+                {
+                    return cast_to<array_type>();
+                }
+                if constexpr(__type == var_type::map)
+                {
+                    return cast_to<map_type>();
+                }
+            }
+            template<var_type __type>
+            auto& as()
+            {
+                if constexpr(__type == var_type::null_type)
+                {
+                    VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(var_type::null_type);
+                }
+                if constexpr(__type == var_type::string)
+                {
+                    return cast_to<std::string>();
+                }
+                if constexpr(__type == var_type::integer)
+                {
+                    return cast_to<int64_t>();
+                }
+                if constexpr(__type == var_type::real)
+                {
+                    return cast_to<double>();
+                }
+                if constexpr(__type == var_type::array)
+                {
+                    return cast_to<array_type>();
+                }
+                if constexpr(__type == var_type::map)
+                {
+                    return cast_to<map_type>();
+                }
+            }
         public:
             bool is_null() const;
             std::string to_s() const;
@@ -81,6 +186,7 @@ namespace uva
             operator std::string() const;
             operator bool() const;
             operator double() const;
+            operator std::vector<int>() const;
 
             var& operator=(std::initializer_list<var> __array);
             var& operator=(const var& other);
@@ -108,6 +214,7 @@ namespace uva
 
             bool operator!=(const double& d) const;
             bool operator!=(const std::string& s) const;
+            bool operator!=(const var_type& __type) const;
 
             bool operator<(const int& i) const;
             bool operator<(const time_t& i) const;
@@ -124,19 +231,19 @@ namespace uva
                 stream << holder.to_s();
                 return stream;
             }
-            friend bool operator<(const double& d, const var& h)
+            friend bool operator<(const double& d, const var& __other)
             {
-                return d < h.real;
+                return d < __other.as<var_type::real>();
             }
-            friend std::filesystem::path operator/(const std::filesystem::path& path, const var& var)
+            friend std::filesystem::path operator/(const std::filesystem::path& path, const var& __other)
             {
-                switch (var.type)
+                switch (__other.type)
                 {
                 case var::var_type::null_type:
                         throw std::runtime_error("undefined method 'friend operator/(std::filesystem::path, var)' for null");
                     break;
                 default:
-                    return path / var.to_s();
+                    return path / __other.to_s();
                     break;
                 }
             }
@@ -168,6 +275,31 @@ namespace uva
              *  see at().)
              */
             var& operator[](const size_t& __n);
+            /**
+             *  @brief  Subscript access to the data contained in the %vector.
+             *  @param __n The index of the element for which data should be
+             *  accessed.
+             *  @return  Read-only (constant) reference to data.
+             *
+             *  This operator allows for easy, array-style, data access.
+             *  Note that data access with this operator is unchecked and
+             *  out_of_range lookups are not defined. (For checked lookups
+             *  see at().)
+             */
+            const var& operator[](const int& __n) const;
+
+            /**
+             *  @brief  Subscript access to the data contained in the %vector.
+             *  @param __n The index of the element for which data should be
+             *  accessed.
+             *  @return  Read/write reference to data.
+             *
+             *  This operator allows for easy, array-style, data access.
+             *  Note that data access with this operator is unchecked and
+             *  out_of_range lookups are not defined. (For checked lookups
+             *  see at().)
+             */
+            var& operator[](const int& __n);
 
             /**
              *  @return         A read-only (constant) iterator that points to the first element in the %vector.
@@ -210,7 +342,6 @@ namespace uva
              *  space available.
              */
             void push_back(var&& __x);
-
             /**
              *  @brief  Inserts given rvalue into %vector before specified iterator.
              *  @param  __position  A const_iterator into the %vector.
@@ -296,6 +427,7 @@ namespace uva
              */
             void each(std::function<void(const uva::core::var& value)> __f) const;
             void each(std::function<void(uva::core::var& value)> __f);
+            void each(void (*__f)(const char&)) const;
             private:
             void each_array(std::function<void(const uva::core::var& value)> __f) const;
             void each_array(std::function<void(uva::core::var& value)> __f);
@@ -373,9 +505,9 @@ namespace uva
                 {
                 case var::var_type::string:
                     #ifdef USE_FMT_FORMT
-                        return vformat(str, std::make_format_args(__args...));
+                        return vformat(as<var_type::string>(), std::make_format_args(__args...));
                     #else
-                        return std::format(str, std::forward<Args>(__args)...);
+                        return std::format(as<var_type::string>(), std::forward<Args>(__args)...);
                     #endif       
                 break;
                 default:
@@ -384,6 +516,14 @@ namespace uva
                 }
             }
 //END STRING FUNCTIONS
+
+//MAP FUNCTIONS
+            const var& operator[](const var& __k) const;
+            var& operator[](const var& __k);
+            const var& operator[](const char* __k) const;
+            var& operator[](const char* __k);
+            var& operator[](const std::string& __k);
+//END MAP FUNCTIONS
         };
 
         var now();
@@ -471,4 +611,3 @@ var          operator ""_percent(unsigned long long d);
 #define empty_map var::var_type::map
 #define empty_array var::var_type::array
 #define self (*this)
-#define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() throw std::runtime_error(std::format("undefined method '{}' for {}", __PRETTY_FUNCTION__, type))
