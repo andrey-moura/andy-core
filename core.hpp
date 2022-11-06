@@ -25,16 +25,20 @@ namespace uva
         };
         class var
         {
-//ARRAY DEFINITIONS
+            using integer_type = int64_t;
+            using bool_type = int64_t;
+            using real_type = double;
+            using char_type = char;
+
+            using string_type = std::basic_string<char_type>;
+
             using array_type = std::vector<var>;
             using array_iterator = array_type::iterator;
             using array_const_iterator = array_type::const_iterator;
-//END ARRAY DEFINITIONS
-//MAP DEFINITIONS
+
             using map_type = std::map<var, var>;
             using map_iterator = map_type::iterator;
             using map_const_iterator = map_type::const_iterator;
-//ND MAP DEFINITIONS
         public:
             enum class var_type
             {
@@ -45,8 +49,8 @@ namespace uva
                 array,
                 map
             };
-            var(std::initializer_list<var> l);
             var();
+            var(std::initializer_list<var> l);
             var(const var& other);
             var(var&& other);
             var(const uint64_t& _integer);
@@ -60,22 +64,61 @@ namespace uva
             var(const array_type& __array);
             var(array_type&& __array);
             var(const var_type& __array);
+            var(map_type&& __map);
             ~var();
-        private:
-            void construct(const var_type& __type);
-            void construct(var&& var);
-            void construct(array_type&& __array);
         public:
-            var_type type;
+            var_type type = var_type::null_type;
         private:
             void* m_value_ptr = nullptr;
+        public:
+            //for debugging
+            #ifndef UVA_DEBUG_LEVEL > 1
+                integer_type* m_integer_ptr = nullptr;
+                real_type* m_real_ptr = nullptr;
+                string_type* m_string_ptr = nullptr;
+                array_type* m_array_ptr = nullptr;
+                map_type* m_map_ptr = nullptr;
+            #endif
+        private:
+            void construct();
+            void construct(void* __ptr);
+            void* __construct();
+
+            void reconstruct(const var& var);
+            void reconstruct(var&& var);
+            void reconstruct(const var_type& __type);
+
+            template<typename type>
+            void reconstruct(const type& __val)
+            {
+                destruct();
+                construct();
+                new(m_value_ptr) type(__val);
+            }
+
+            template<typename type>
+            void reconstruct(const type&& __val)
+            {
+                destruct();
+                construct();
+                new(m_value_ptr) type(std::move(__val));
+            }
+
+            void destruct();
+            void __delete();
+            static constexpr size_t size_for_buffer = std::max({   
+                sizeof(string_type),
+                sizeof(integer_type),
+                sizeof(real_type),
+                sizeof(array_type),
+                sizeof(map_type)
+            });
         public:
             template<typename type>
             type& cast_to() const
             {
                 return *((type*)m_value_ptr);
             }
-            
             template<var_type __type>
             const auto& as() const
             {
@@ -143,6 +186,7 @@ namespace uva
             operator std::string() const;
             operator bool() const;
             operator double() const;
+            operator std::vector<int>() const;
 
             var& operator=(std::initializer_list<var> __array);
             var& operator=(const var& other);
@@ -170,6 +214,7 @@ namespace uva
 
             bool operator!=(const double& d) const;
             bool operator!=(const std::string& s) const;
+            bool operator!=(const var_type& __type) const;
 
             bool operator<(const int& i) const;
             bool operator<(const time_t& i) const;
@@ -230,6 +275,31 @@ namespace uva
              *  see at().)
              */
             var& operator[](const size_t& __n);
+            /**
+             *  @brief  Subscript access to the data contained in the %vector.
+             *  @param __n The index of the element for which data should be
+             *  accessed.
+             *  @return  Read-only (constant) reference to data.
+             *
+             *  This operator allows for easy, array-style, data access.
+             *  Note that data access with this operator is unchecked and
+             *  out_of_range lookups are not defined. (For checked lookups
+             *  see at().)
+             */
+            const var& operator[](const int& __n) const;
+
+            /**
+             *  @brief  Subscript access to the data contained in the %vector.
+             *  @param __n The index of the element for which data should be
+             *  accessed.
+             *  @return  Read/write reference to data.
+             *
+             *  This operator allows for easy, array-style, data access.
+             *  Note that data access with this operator is unchecked and
+             *  out_of_range lookups are not defined. (For checked lookups
+             *  see at().)
+             */
+            var& operator[](const int& __n);
 
             /**
              *  @return         A read-only (constant) iterator that points to the first element in the %vector.
@@ -357,6 +427,7 @@ namespace uva
              */
             void each(std::function<void(const uva::core::var& value)> __f) const;
             void each(std::function<void(uva::core::var& value)> __f);
+            void each(void (*__f)(const char&)) const;
             private:
             void each_array(std::function<void(const uva::core::var& value)> __f) const;
             void each_array(std::function<void(uva::core::var& value)> __f);
@@ -445,6 +516,14 @@ namespace uva
                 }
             }
 //END STRING FUNCTIONS
+
+//MAP FUNCTIONS
+            const var& operator[](const var& __k) const;
+            var& operator[](const var& __k);
+            const var& operator[](const char* __k) const;
+            var& operator[](const char* __k);
+            var& operator[](const std::string& __k);
+//END MAP FUNCTIONS
         };
 
         var now();

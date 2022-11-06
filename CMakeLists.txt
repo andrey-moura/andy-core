@@ -11,6 +11,12 @@ include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 target_link_libraries(uva-core uva-string)
 
+if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+	if(NOT UVA_DEBUG_LEVEL)
+    	set(UVA_DEBUG_LEVEL 1)
+	endif()
+endif (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+
 #Tests
 
 #Create tests for parent project

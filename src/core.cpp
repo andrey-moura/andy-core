@@ -34,154 +34,195 @@ var operator ""_percent(unsigned long long d)
 //VAR
 
 var::var()
-    : type(var_type::null_type)
 {
 
 }
 
 var::var(const var& other)
 {
+    reconstruct(other);
+}
+
+var::var(var&& other)
+{
+    reconstruct(std::move(other));
+}
+
+var::var(const uint64_t& __integer)
+{
+    construct();
+    as<var_type::integer>() = __integer;
+    type = var_type::integer;
+}
+
+var::var(const int& __integer)
+{
+    construct();
+    as<var_type::integer>() = __integer;
+    type = var_type::integer;
+}
+
+var::var(const time_t& __integer)
+{
+    construct();
+    as<var_type::integer>() = __integer;
+    type = var_type::integer;
+}
+
+var::var(const bool& boolean)
+{
+    construct();
+    as<var_type::integer>() = boolean;
+    type = var_type::integer;
+}
+
+var::var(const double& d)
+{
+    construct();
+    as<var_type::real>() = d;
+    type = var_type::real;
+}
+
+var::var(const std::string& __str)
+{
+    construct();
+    new(m_value_ptr) string_type(__str);
+    type = var_type::string;
+}
+
+var::var(const char* __str)
+{
+    construct();
+    new(m_value_ptr) string_type(__str);
+    type = var_type::string;
+}
+
+var::var(const char* __str, size_t __len)
+{
+    construct();
+    new(m_value_ptr) string_type(__str, __len);
+    type = var_type::string;
+}
+
+var::var(std::initializer_list<var> l)
+{
+    construct();
+    new(m_value_ptr) array_type(std::move(l));
+    type = var_type::array;
+}
+
+var::var(const array_type& __array)
+{
+    construct();
+    new(m_value_ptr) array_type(__array);
+    type = var_type::array;
+}
+
+var::var(array_type&& __array)
+{
+    construct();
+    new(m_value_ptr) array_type(std::move(__array));
+    type = var_type::array;
+}
+
+var::var(const var_type& __type)
+{
+    reconstruct(__type);
+}
+
+var::var(map_type&& __map)
+{
+    construct();
+    new(m_value_ptr) map_type(std::move(__map));
+    type = var_type::map;
+}
+
+void* var::__construct()
+{
+    return new uint8_t[size_for_buffer];
+}
+
+void var::construct(void* __ptr)
+{
+    m_value_ptr = __ptr;
+
+    m_integer_ptr = (integer_type*)m_value_ptr;
+    m_real_ptr    = (real_type*)m_value_ptr;
+    m_string_ptr  = (string_type*)m_value_ptr;
+    m_array_ptr   = (array_type*)m_value_ptr;
+    m_map_ptr     = (map_type*)m_value_ptr;
+}
+
+void var::construct()
+{
+    construct(__construct());
+}
+
+void var::reconstruct(const var& other)
+{
+    destruct();
+    construct();
+
     switch(other.type)
     {
         case var_type::null_type:
         break;
-        case var_type::string:
-            as<var_type::string>() = other.as<var_type::string>();
-        break;
         case var_type::integer:
+            //does not need constructor
             as<var_type::integer>() = other.as<var_type::integer>();
         break;
         case var_type::real:
+            //does not need constructor
             as<var_type::real>() = other.as<var_type::real>();
         break;
+        case var_type::string:
+            new(m_value_ptr) string_type(other.as<var_type::string>());
+        break;
         case var_type::array:
-            as<var_type::array>() = other.as<var_type::array>();
+            new(m_value_ptr) array_type(other.as<var_type::array>());
         break;
         case var_type::map:
-            as<var_type::map>() = other.as<var_type::map>();
+            new(m_value_ptr) map_type(other.as<var_type::map>());
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-            break;
+        break;
     }
 
     type = other.type;
 }
 
-var::var(var&& other)
+void var::reconstruct(var&& __var)
 {
-    construct(std::forward<var&&>(other));
+    destruct();
+
+    construct(__var.m_value_ptr);
+
+    type = __var.type;
+
+    __var.m_value_ptr = nullptr;
+    __var.type = var_type::null_type;
 }
 
-var::var(const uint64_t& __integer)
-    : type(var::var_type::integer)
+void var::reconstruct(const var_type& __type)
 {
-    m_value_ptr = new int64_t(__integer);
-}
+    destruct();
+    construct();
 
-var::var(const int& __integer)
-    : type(var::var_type::integer)
-{
-    m_value_ptr = new int64_t(__integer);
-}
-
-var::var(const time_t& __integer)
-    : type(var::var_type::integer)
-{
-    m_value_ptr = new int64_t(__integer);
-}
-
-var::var(const std::string& __str)
-    : type(var::var_type::string)
-{
-    m_value_ptr = new std::string(__str);
-}
-
-var::var(const char* __str)
-    : type(var::var_type::string)
-{
-    m_value_ptr = new std::string(__str);
-}
-
-var::var(const char* __str, size_t __len)
-    : type(var::var_type::string)
-{
-    m_value_ptr = new std::string(__str, __len);
-}
-
-var::var(const bool& boolean)
-    : type(var::var_type::integer)
-{
-    m_value_ptr = new int64_t(boolean);
-}
-
-var::var(const double& d)
-    : type(var::var_type::real)
-{
-    m_value_ptr = new double(d);
-}
-
-var::var(std::initializer_list<var> l)
-    : type(var::var_type::array)
-{
-    m_value_ptr = new array_type(std::move(l));
-}
-
-var::var(const array_type& __array)
-    : type(var::var_type::array)
-{
-    m_value_ptr = new array_type(__array);
-}
-
-var::var(array_type&& __array)
-    : type(var::var_type::array)
-{
-    m_value_ptr = new array_type(__array);
-}
-
-var::var(const var_type& __type)
-{
-    construct(__type);
-}
-
-var::~var()
-{
-    if(m_value_ptr)
-    {
-        switch (type)
-        {
-            case var_type::string:
-                delete &as<var_type::string>();
-            break;
-            case var_type::integer:
-                delete &as<var_type::integer>();
-            break;
-            case var_type::real:
-                delete &as<var_type::real>();
-            break;
-            case var_type::array:
-                delete &as<var_type::array>();
-            break;
-            case var_type::map:
-                delete &as<var_type::map>();
-            break;
-        }
-    }
-}
-
-void var::construct(const var_type& __type)
-{
     switch (__type)
     {
-    case var_type::map:
-            m_value_ptr = new map_type();
-        break;
+    case var_type::integer:
+    case var_type::real:
+    break;
+    case var_type::string:
+        new(m_value_ptr) string_type();
+    break;
     case var_type::array:
-            m_value_ptr = new array_type();
-        break;
-    case var_type::null_type:
-            m_value_ptr = nullptr;
-        break;
+        new(m_value_ptr) array_type();
+    break;
+    case var_type::map:
+        new(m_value_ptr) map_type();
+    break;
     default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -190,19 +231,42 @@ void var::construct(const var_type& __type)
     type = __type;
 }
 
-void var::construct(var&& __var)
+var::~var()
 {
-    m_value_ptr = __var.m_value_ptr;
-    __var.m_value_ptr = nullptr;
-    __var.type = var_type::null_type;
-
-    type = __var.type;
+    __delete();
 }
 
-void var::construct(array_type&& __array)
+void var::__delete()
 {
-    as<var_type::array>() = std::forward<array_type&&>(__array);
-    (*this).type = var_type::array;
+    destruct();
+    delete[] (uint8_t*)m_value_ptr;
+}
+
+void var::destruct()
+{
+    if(m_value_ptr)
+    {
+        switch (type)
+        {
+            case var_type::null_type:
+            break;
+            case var_type::integer:
+            case var_type::real:
+            break;
+            case var_type::string:
+                as<var_type::string>().~basic_string();
+            break;
+            case var_type::array:
+                as<var_type::array>().~vector();
+            break;
+            case var_type::map:
+                as<var_type::map>().~map();
+            break;
+            default:
+                VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+            break;
+        }
+    }
 }
 
 bool var::is_null() const
@@ -298,94 +362,171 @@ var::operator double() const
     return as<var_type::real>();
 }
 
-var& var::operator=(const char* c)
+var::operator std::vector<int>() const
 {
-    as<var_type::string>() = c;
-    type = var::var_type::string;
-    return *this;
-}
+    if(type == var_type::array)
+    {
+        const array_type& array = as<var_type::array>();
 
-var& var::operator=(const unsigned char* c)
-{
-    as<var_type::string>() = (char*)c;
-    type = var::var_type::string;
-    return *this;
+        std::vector<int> __arr;
+        __arr.reserve(array.size());
+        
+        for(int i = 0; i < array.size(); ++i)
+        {
+            __arr.push_back(array[i].as<var_type::integer>());
+        }
+
+        return __arr;
+    } else {
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+    }
 }
 
 var& var::operator=(const uint64_t& i)
 {
-    as<var_type::integer>() = (int64_t)i;
-    type = var::var_type::integer;
+    if(type == var_type::integer)
+    {
+        as<var_type::integer>() = i;
+    } else {
+        reconstruct<integer_type>(i);
+        type = var::var_type::integer;
+    }
+
     return *this;
 }
 
 var& var::operator=(const int64_t& i)
 {
-    as<var_type::integer>() = i;
-    type = var::var_type::integer;
-    return *this;
-}
+    if(type == var_type::integer)
+    {
+        as<var_type::integer>() = i;
+    } else {
+        reconstruct<integer_type>(i);
+        type = var::var_type::integer;
+    }
 
-var& var::operator=(const std::string& s)
-{
-    as<var_type::string>() = s;
-    type = var::var_type::string;
-    return *this;
-}
-
-var& var::operator=(array_type&& __array)
-{
-    construct(std::forward<array_type&&>(__array));
     return *this;
 }
 
 var& var::operator=(const bool& b)
 {
-    as<var_type::integer>() = (int64_t)b;
-    type = var::var_type::integer;
+    constexpr var_type __type = var_type::integer;
+    int64_t i = (int64_t)(b);
+
+    if(type == __type)
+    {
+        as<__type>() = i;
+    } else {
+        reconstruct<integer_type>(i);
+        type =__type;
+    }
+
     return *this;
 }
 
 var& var::operator=(const double& d)
 {
-    as<var_type::real>() = d;
-    type = var::var_type::real;
+    constexpr var_type __type = var_type::real;
+
+    if(type == __type)
+    {
+        as<__type>() = d;
+    } else {
+        reconstruct<real_type>(d);
+        type =__type;
+    }
+
+    return *this;
+}
+
+var& var::operator=(const char* str)
+{
+    if(type == var_type::string)
+    {
+        as<var_type::string>() = str;
+    } else {
+        reconstruct<string_type>(str);
+        type = var::var_type::string;
+    }
+
+    return *this;
+}
+
+var& var::operator=(const unsigned char* ustr)
+{
+    const char* str = (const char*)ustr;
+
+    if(type == var_type::string)
+    {
+        as<var_type::string>() = str;
+    } else {
+        reconstruct<string_type>(str);
+        type = var::var_type::string;
+    }
+
+    return *this;
+}
+
+var& var::operator=(const std::string& str)
+{
+    if(type == var_type::string)
+    {
+        as<var_type::string>() = str;
+    } else {
+        reconstruct<string_type>(str);
+        type = var::var_type::string;
+    }
+
+    return *this;
+}
+
+var& var::operator=(array_type&& __array)
+{
+    constexpr var_type __type = var_type::array;
+
+    if(type == __type)
+    {
+        as<__type>() = __array;
+    } else {
+        reconstruct<array_type>(__array);
+        type = __type;
+    }
+
+    return *this;
+}
+
+var& var::operator=(std::initializer_list<var> __array)
+{
+    constexpr var_type __type = var_type::array;
+
+    if(type == __type)
+    {
+        as<__type>() = __array;
+    } else {
+        reconstruct<array_type>(std::move(__array));
+        type = __type;
+    }
+
     return *this;
 }
 
 var& var::operator=(const var& other)
 {
-    switch(other.type) {
-        case var_type::integer:
-            as<var_type::integer>() = other.as<var_type::integer>();
-            break;
-        case var_type::string:
-            as<var_type::string>() = other.as<var_type::string>();
-            break;
-        default:
-            throw std::runtime_error(std::format("undefined method 'operator=(const var&)' for {}", type));
-        break;
-    }
+    reconstruct(other);
+
     type = other.type;
     return *this;
 }
 
 var& var::operator=(var&& other)
 {
-    construct(std::forward<var&&>(other));
-    return *this;
-}
-
-var& var::operator=(std::initializer_list<var> __array)
-{
-    as<var_type::array>() = std::move(__array);
-    type = var_type::array;
+    reconstruct(std::move(other));
     return *this;
 }
 
 var& var::operator=(const var_type& __type)
 {
-    construct(__type);
+    reconstruct(__type);
     return *this;
 }
 
@@ -473,6 +614,11 @@ bool var::operator!=(const std::string& s) const
     return as<var_type::string>() != s;
 }
 
+bool var::operator!=(const var_type& __type) const
+{
+    return type != __type;
+}
+
 bool var::operator<(const int& i) const
 {
     return as<var_type::integer>() < i;
@@ -517,6 +663,17 @@ var& var::operator[](const size_t& i)
 {
     return as<var_type::array>()[i];
 }
+
+const var& var::operator[](const int& __n) const
+{
+    return as<var_type::array>()[(size_t)__n];
+}
+
+var& var::operator[](const int& __n)
+{
+    return as<var_type::array>()[(size_t)__n];
+}
+
 
 var::array_const_iterator var::begin() const
 {
@@ -729,6 +886,24 @@ void var::each(std::function<void(var& value)> __f)
     }
 }
 
+void var::each(void (*__f)(const char&)) const
+{
+    switch(type)
+    {
+        case var_type::string:{
+            const std::string& string = as<var_type::string>();
+
+            for(size_t i = 0; i < string.size(); ++i) {
+                __f(string[i]);
+            }
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 var var::join_array(const char& __separator) const
 { 
     return uva::string::join(as<var_type::array>(), __separator);
@@ -825,6 +1000,50 @@ var var::pluralize()
     }
 
     return uva::string::pluralize(as<var_type::string>());
+}
+
+const var& var::operator[](const var& __k) const
+{
+    switch(type)
+    {
+        case var_type::map:{
+            const map_type& map = as<var_type::map>();
+
+            auto it = map.find(__k);
+            if(it == map.end()) {
+                throw "trying to access var by non-existent key in const map.";
+            }
+
+            return it->second;
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+var& var::operator[](const var& __k)
+{
+    switch(type)
+    {
+        case var_type::map:
+            return as<var_type::map>()[__k];
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+const var& var::operator[](const char* __k) const
+{
+    return self[var(__k)];
+}
+
+var& var::operator[](const char* __k)
+{
+    return self[var(__k)];
 }
 
 //END VAR
