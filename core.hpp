@@ -10,7 +10,13 @@
 
 #include <string.hpp>
 
-#define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", __PRETTY_FUNCTION__, __type));
+#ifdef _MSC_VER
+    #define CORE_FUNCTION_NAME __func__
+#else
+   #define CORE_FUNCTION_NAME __PRETTY_FUNCTION__
+#endif
+
+#define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", CORE_FUNCTION_NAME, __type));
 #define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(type)
 
 namespace uva
@@ -72,13 +78,13 @@ namespace uva
             void* m_value_ptr = nullptr;
         public:
             //for debugging
-            #ifndef UVA_DEBUG_LEVEL > 1
-                integer_type* m_integer_ptr = nullptr;
-                real_type* m_real_ptr = nullptr;
-                string_type* m_string_ptr = nullptr;
-                array_type* m_array_ptr = nullptr;
-                map_type* m_map_ptr = nullptr;
-            #endif
+#ifndef UVA_DEBUG_LEVEL > 1
+            integer_type* m_integer_ptr = nullptr;
+            real_type* m_real_ptr = nullptr;
+            string_type* m_string_ptr = nullptr;
+            array_type* m_array_ptr = nullptr;
+            map_type* m_map_ptr = nullptr;
+#endif
         private:
             void construct();
             void construct(void* __ptr);
