@@ -688,7 +688,7 @@ bool var::operator<(const var& other) const
     }
 
     throw std::runtime_error(std::format("cannot compare (var_type){} to (var_type){}", (size_t)type, (size_t)other.type));
-    return -1;
+    return false;
 }
 
 const var& var::operator[](const size_t& i) const
