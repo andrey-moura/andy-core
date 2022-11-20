@@ -402,6 +402,8 @@ namespace uva
              */
             array_iterator lower_bound(const uva::core::var& __val);
 
+            array_iterator upper_bound(const uva::core::var& __val);
+
             /**
              *  @brief Finds the first position in which @a val could be inserted
              *         without changing the ordering.
@@ -472,6 +474,9 @@ namespace uva
              *   Attempt to preallocate enough memory for specified number of elements.
             */
             void reserve(size_t __n);
+            bool binary_search(const var& other) const;
+            array_iterator insert_sorted(const var& item, bool distinct = true);
+            public:
 //END ARRAY/STRING/MAP
             /**
              *  @return The number of elements contained by %var if it is a container
@@ -486,6 +491,7 @@ namespace uva
              *  @return The time represented in a string according to @a __format
              */
             var strftime(std::string_view __format);
+
 //END DATE TIME FUNCTIONS
 
 //STRING FUNCTIONS

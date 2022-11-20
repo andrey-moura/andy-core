@@ -373,7 +373,7 @@ var::operator std::vector<int>() const
         
         for(int i = 0; i < array.size(); ++i)
         {
-            __arr.push_back(array[i].as<var_type::integer>());
+            __arr.push_back((int)array[i].as<var_type::integer>());
         }
 
         return __arr;
@@ -811,6 +811,44 @@ void var::reserve(size_t __n)
     } 
 }
 
+bool var::binary_search(const var& other) const
+{
+    switch(type)
+    {
+        case var_type::array:
+            return std::binary_search(as<var_type::array>().begin(), as<var_type::array>().end(), other);
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+var::array_iterator var::insert_sorted(const var& item, bool distinct)
+{
+    switch(type)
+    {
+        case var_type::array: {
+            auto it = upper_bound(item);
+
+            if(!distinct || it == end() || *it != item)
+            {
+                return as<var_type::array>().insert
+                ( 
+                    it,
+                    item 
+                );
+            }
+
+            return as<var_type::array>().end();
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 bool var::empty() const
 {
     switch(type)
@@ -854,6 +892,19 @@ var::array_iterator var::lower_bound(const var& value)
         break;
     default:
         throw std::runtime_error(std::format("undefined method 'lower_bound' for (var_type){}", (size_t)type));
+        break;
+    }
+}
+
+var::array_iterator var::upper_bound(const uva::core::var& __val)
+{
+    switch (type)
+    {
+    case var::var_type::array:
+        return std::upper_bound(begin(), end(), __val);
+        break;
+    default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
     }
 }
