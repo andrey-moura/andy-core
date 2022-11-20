@@ -615,7 +615,7 @@ bool var::operator==(const std::string& s) const
 
 bool var::operator==(const bool& b) const
 {
-    return as<var_type::integer>() == (bool)as<var_type::integer>();
+    return b == (bool)as<var_type::integer>();
 }
 
 bool var::operator==(const int& other) const
