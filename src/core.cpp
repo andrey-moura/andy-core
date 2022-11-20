@@ -561,6 +561,43 @@ var& var::operator+=(const std::string& s)
     }
 }
 
+bool var::operator==(const var& other) const
+{
+    switch(type)
+    {
+        case var_type::null_type:
+            return other.type == var_type::null_type;
+        break;
+        case var_type::string:
+            return other.type == var_type::string && typed_compare<var_type::string>(other); 
+        break;
+        case var_type::integer:
+            if(other.type == var_type::integer) {
+                return typed_compare<var_type::integer>(other);
+            } 
+            else if(other.type == var_type::real)
+            {
+                return (real_type)as<var_type::integer>() == other.as<var_type::real>();
+            }
+            return false;
+        break;
+        case var_type::real:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        case var_type::array:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        case var_type::map:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+
+    return false;
+}
+
 bool var::operator==(const long& l) const
 {
     return as<var_type::integer>() == l;

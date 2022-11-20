@@ -211,6 +211,11 @@ namespace uva
             var operator+(const std::string& s) const;
             var& operator+=(const std::string& s);
 
+            template<var_type __type>
+            bool typed_compare(const var& other) const
+            {
+                return as<__type>() == other.as<__type>();
+            }
             bool operator==(const var& other) const;
             bool operator==(const long& l) const;
             bool operator==(const double& d) const;
