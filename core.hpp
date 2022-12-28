@@ -223,6 +223,7 @@ namespace uva
             bool operator==(const bool& b) const;
             bool operator==(const int& other) const;
 
+            bool operator!=(const var& v) const;
             bool operator!=(const double& d) const;
             bool operator!=(const std::string& s) const;
             bool operator!=(const var_type& __type) const;

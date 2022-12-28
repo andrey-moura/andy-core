@@ -641,6 +641,11 @@ bool var::operator==(const int& other) const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
+bool var::operator!=(const var& v) const
+{
+    return !(*this == v);
+}
+
 bool var::operator!=(const double& d) const
 {
     return as<var_type::real>() != d;
