@@ -616,6 +616,9 @@ var          operator ""_percent(unsigned long long d);
             case var::var_type::null_type:
                 return std::format_to(ctx.out(), "{}", "null");
             break;
+            case var::var_type::map:
+                return std::format_to(ctx.out(), "{}", "map");
+            break;
             default:
                 throw std::runtime_error(std::format("invalid value of var::var_type: {}", (int)type));
             break;

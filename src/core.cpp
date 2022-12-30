@@ -703,19 +703,102 @@ const var& var::operator[](const size_t& i) const
 
 var& var::operator[](const size_t& i)
 {
-    return as<var_type::array>()[i];
+    switch(type)
+    {
+        case var_type::map:{
+            return as<var_type::map>()[i];
+        }
+        case var_type::array:{
+            return as<var_type::array>()[i];
+        }
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 const var& var::operator[](const int& __n) const
 {
-    return as<var_type::array>()[(size_t)__n];
+    switch(type)
+    {
+        case var_type::map:{
+            const map_type& map = as<var_type::map>();
+
+            auto it = map.find(__n);
+            if(it == map.end()) {
+                throw "trying to access var by non-existent key in const map.";
+            }
+
+            return it->second;
+        }
+        case var_type::array:{
+            return as<var_type::array>()[__n];
+        }
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 var& var::operator[](const int& __n)
 {
-    return as<var_type::array>()[(size_t)__n];
+    switch(type)
+    {
+        case var_type::map:{
+            return as<var_type::map>()[__n];
+        }
+        case var_type::array:{
+            return as<var_type::array>()[__n];
+        }
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
+const var& var::operator[](const var& __k) const
+{
+    switch(type)
+    {
+        case var_type::map:{
+            const map_type& map = as<var_type::map>();
+
+            auto it = map.find(__k);
+            if(it == map.end()) {
+                throw "trying to access var by non-existent key in const map.";
+            }
+
+            return it->second;
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+var& var::operator[](const var& __k)
+{
+    switch(type)
+    {
+        case var_type::map:
+            return as<var_type::map>()[__k];
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+const var& var::operator[](const char* __k) const
+{
+    return self[var(__k)];
+}
+
+var& var::operator[](const char* __k)
+{
+    return self[var(__k)];
+}
 
 var::array_const_iterator var::begin() const
 {
@@ -1039,6 +1122,9 @@ size_t var::size() const
             return as<var_type::array>().size();
         break;
         default:
+        case var_type::map:
+            return as<var_type::map>().size();
+        break;
             throw std::runtime_error(std::format("undefined method 'size' for {}", type));
         break;
     }
@@ -1093,50 +1179,6 @@ var var::pluralize()
     }
 
     return uva::string::pluralize(as<var_type::string>());
-}
-
-const var& var::operator[](const var& __k) const
-{
-    switch(type)
-    {
-        case var_type::map:{
-            const map_type& map = as<var_type::map>();
-
-            auto it = map.find(__k);
-            if(it == map.end()) {
-                throw "trying to access var by non-existent key in const map.";
-            }
-
-            return it->second;
-        }
-        break;
-        default:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-    }
-}
-
-var& var::operator[](const var& __k)
-{
-    switch(type)
-    {
-        case var_type::map:
-            return as<var_type::map>()[__k];
-        break;
-        default:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-    }
-}
-
-const var& var::operator[](const char* __k) const
-{
-    return self[var(__k)];
-}
-
-var& var::operator[](const char* __k)
-{
-    return self[var(__k)];
 }
 
 //END VAR
