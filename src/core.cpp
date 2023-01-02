@@ -1131,6 +1131,27 @@ var var::join(const char& __separator) const
     }
 }
 
+var var::fetch(const var& __value, const var& __default) const
+{
+    switch(type)
+    {
+        case var_type::map:
+        {
+            auto it = as<var_type::map>().find(__value);
+            if(it != as<var_type::map>().end())
+            {
+                return it->second;
+            }
+
+            return __default;
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 size_t var::size() const
 {
     switch(type)

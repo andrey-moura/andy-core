@@ -464,6 +464,8 @@ namespace uva
              *  @return A string containing the elements formated to string, separeted with @a __separator
              */
             var join(const char& __separator) const;
+
+            var fetch(const var& __value, const var& __default = var_type::null_type) const;
 //END ARRAY/MAP FUNCTIONS
 
 //ARRAY/STRING/MAP FUNCTIONS
