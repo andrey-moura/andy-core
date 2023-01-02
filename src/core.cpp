@@ -671,6 +671,11 @@ bool uva::core::var::operator!=(const char *s) const
     return as<var_type::string>() != s;
 }
 
+bool uva::core::var::operator!=(const char8_t *s) const
+{
+    return as<var_type::string>() != (const char *)s;
+}
+
 bool var::operator!=(const std::string& s) const
 {
     return as<var_type::string>() != s;
