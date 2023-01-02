@@ -223,6 +223,8 @@ void var::reconstruct(const var_type& __type)
     case var_type::map:
         new(m_value_ptr) map_type();
     break;
+    case var_type::null_type:
+        break;
     default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
