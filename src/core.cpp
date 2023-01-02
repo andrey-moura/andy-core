@@ -290,8 +290,7 @@ std::string var::to_s() const
         break;
     }
 
-    throw std::runtime_error(std::format("failed to convert from (var_type){} to string", (size_t)type));
-    return "";
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
 int64_t var::to_i() const
