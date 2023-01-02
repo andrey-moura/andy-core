@@ -355,6 +355,10 @@ var::operator std::string() const
 
 var::operator bool() const
 {
+    if(type == null) {
+        return false;
+    }
+
     return (bool)as<var_type::integer>();
 }
 
