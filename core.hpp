@@ -546,6 +546,13 @@ namespace uva
             const var& operator[](const char* __k) const;
             var& operator[](const char* __k);
             var& operator[](const std::string& __k);
+
+            /**
+             *  @brief Gives the key value corresponding to the value in __v. If value doesn’t exist then return null.
+             *  @param __v value to find.
+             *  @return key corresponding to the value or nil if value doesn’t exist
+             */
+            var key(const var& __v);
 //END MAP FUNCTIONS
         };
 

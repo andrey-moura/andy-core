@@ -825,6 +825,27 @@ var& var::operator[](const char* __k)
     return self[var(__k)];
 }
 
+var uva::core::var::key(const var &__v)
+{
+    switch(type)
+    {
+        case var_type::map: {
+            for(const auto & pair : as<var_type::map>())
+            {
+                if(pair.second == __v) {
+                    return pair.first;
+                }
+            }
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+
+    return null;
+}
+
 var::array_const_iterator var::begin() const
 {
     switch (type)
