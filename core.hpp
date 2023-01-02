@@ -208,6 +208,7 @@ namespace uva
             var& operator=(array_type&& __array);
             var& operator=(const var_type& __type);
 
+            var operator+(const char* s) const;
             var operator+(const std::string& s) const;
             var& operator+=(const std::string& s);
 

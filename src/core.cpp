@@ -530,7 +530,22 @@ var& var::operator=(const var_type& __type)
     return *this;
 }
 
-var var::operator+(const std::string& s) const
+var uva::core::var::operator+(const char *s) const
+{
+    switch (type)
+    {
+        case var::var_type::string:{
+            var new_var = *this;
+            new_var += s;
+            return new_var;
+        }
+        break;
+    }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+}
+
+var var::operator+(const std::string &s) const
 {
     switch (type)
     {
