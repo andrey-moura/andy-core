@@ -830,6 +830,11 @@ var& var::operator[](const char* __k)
     return self[var(__k)];
 }
 
+var &uva::core::var::operator[](const std::string &__k)
+{
+    return self[var(__k)];
+}
+
 var uva::core::var::key(const var &__v)
 {
     switch(type)
