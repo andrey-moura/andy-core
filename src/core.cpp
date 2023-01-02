@@ -666,6 +666,11 @@ bool var::operator!=(const double& d) const
     return as<var_type::real>() != d;
 }
 
+bool uva::core::var::operator!=(const char *s) const
+{
+    return as<var_type::string>() != s;
+}
+
 bool var::operator!=(const std::string& s) const
 {
     return as<var_type::string>() != s;
