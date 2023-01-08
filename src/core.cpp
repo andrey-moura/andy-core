@@ -406,11 +406,21 @@ var::operator std::string() const
 
 var::operator bool() const
 {
-    if(type == null) {
+    switch (type)
+    {
+    case var_type::null_type:
         return false;
+        break;
+    case var_type::integer:
+        return (bool)as<var_type::integer>();
+    break;
+    case var_type::string:
+        return as<var_type::string>().size();
+    break;
+    default:
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
     }
-
-    return (bool)as<var_type::integer>();
 }
 
 var::operator double() const
