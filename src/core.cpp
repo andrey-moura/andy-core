@@ -280,6 +280,9 @@ std::string var::to_s() const
 {
     switch(type)
     {
+        case var_type::null_type:
+            return "null";
+        break;
         case var_type::string:
             return as<var_type::string>();
         break;
@@ -287,6 +290,43 @@ std::string var::to_s() const
             return std::to_string(as<var_type::integer>());
         case var_type::real:
             return std::format("{}", as<var_type::real>());
+        case var_type::map:
+            {
+                std::string s = "{";
+
+                for(const auto& p : as<var_type::map>())
+                {
+                    s += " {";
+
+                    if(p.first.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s += p.first.to_s();
+
+                    if(p.first.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s+= ", ";
+
+                    if(p.second.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s += p.second.to_s();
+
+                    if(p.second.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s += " },";
+                }
+
+                s += " }";
+
+                return s;
+            }
         break;
     }
 
