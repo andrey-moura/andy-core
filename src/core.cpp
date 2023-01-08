@@ -390,7 +390,18 @@ var::operator int64_t() const
 
 var::operator std::string() const
 {
-    return as<var_type::string>();
+    switch (type)
+    {
+    case var_type::null_type:
+        return "";
+        break;
+    case var_type::string:
+        return as<var_type::string>();
+    break;
+    default:
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 var::operator bool() const
