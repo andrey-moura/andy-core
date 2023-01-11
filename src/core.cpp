@@ -337,6 +337,9 @@ int64_t var::to_i() const
 {
     switch(type)
     {
+        case var_type::null_type:
+            return 0;
+        break;
         case var_type::string:
         {
             std::string string = as<var_type::string>();
