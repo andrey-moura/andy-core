@@ -1337,4 +1337,98 @@ var uva::core::now()
 {
     return time(nullptr);
 }
-//END CORE
+
+var find_best_type(std::string str)
+{
+    if(str.starts_with('\'') || str.starts_with('"')) {
+        if(str.ends_with('\'') || str.ends_with('"')) {
+            return str.substr(1, str.size()-2);
+        } else {
+            throw std::runtime_error("error: missing terminating quoetes");
+        }
+    } else {
+        bool is_negative = false;
+        bool is_double = false;
+
+        if(str.starts_with('-')) {
+            is_negative = true;
+            str = str.substr(1);
+        }
+
+        for(size_t i = 0; i < str.size(); ++i)
+        {
+            if(str[i] == '.') {
+                if(is_double) {
+                    throw std::runtime_error("error: unexpected '.'");
+                } else {
+                    is_double = true;
+                }
+            }
+
+            if(!isdigit(str[i])) {
+                throw std::runtime_error(std::format("error: unexpected '{}'", str[i]));
+            }
+        }
+
+        if(is_double) {
+            double d = std::stod(str);
+
+            return is_negative ? (d * -1) : d;
+        } else {
+            size_t i = std::stol(str);
+
+            return is_negative ? (i * -1) : i;
+        }
+    }
+}
+
+var uva::core::parse_argument_list(const std::string &argument_list)
+{
+    std::string_view sv = argument_list;
+    var arguments = empty_array;
+
+    std::string extracted_var;
+    char is_inside_quotes = '\0';
+
+    while(sv.size()) {
+        if(!is_inside_quotes && extracted_var.empty())
+        {
+            if(!isspace(sv[0])) {
+                if(sv.starts_with('\'') || sv.starts_with('"')) {
+                    is_inside_quotes = sv[0];
+                } else if(isalpha(sv[0]))
+                {
+                    throw std::runtime_error("error: unexpected alphabet");
+                } else if(sv[0] == '-' || isdigit(sv[0]))
+                {
+                    extracted_var.push_back(sv[0]);
+                }
+            }
+        } else if(is_inside_quotes){
+            if(sv.starts_with(is_inside_quotes)) {
+                is_inside_quotes = 0;
+                arguments.push_back(extracted_var);
+                extracted_var.clear();
+            } else {
+                extracted_var.push_back(sv[0]);
+            }
+        } else
+        {
+            if(sv.starts_with(',')) {
+                arguments.push_back(find_best_type(extracted_var));
+                extracted_var.clear();
+            } else {
+                extracted_var.push_back(sv[0]);
+            }
+        }
+        
+        sv.remove_prefix(1);
+    }
+    
+    if(extracted_var.size()) {
+        arguments.push_back(find_best_type(extracted_var));
+    }
+    
+    return arguments;
+}
+// END CORE

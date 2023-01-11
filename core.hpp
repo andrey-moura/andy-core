@@ -557,6 +557,7 @@ namespace uva
         };
 
         var now();
+        var parse_argument_list(const std::string& argument_list);
     };
 };
 
