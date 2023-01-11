@@ -734,7 +734,18 @@ bool var::operator!=(const double& d) const
 
 bool uva::core::var::operator!=(const char *s) const
 {
-    return as<var_type::string>() != s;
+    switch (type)
+    {
+    case var_type::null_type:
+        return true;
+        break;
+    case var_type::string:
+        return as<var_type::string>() != s;
+        break;
+    default:
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 bool uva::core::var::operator!=(const char8_t *s) const
