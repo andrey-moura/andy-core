@@ -637,7 +637,36 @@ var          operator ""_percent(unsigned long long d);
             break;
         };
     }
-
+#else
+    template <>
+    struct std::formatter<var::var_type> : std::formatter<std::string> {
+        auto format(var::var_type type, format_context& ctx) {
+            switch(type)
+            {
+                case var::var_type::string:
+                    return std::format_to(ctx.out(), "{}", "string");
+                break;
+                case var::var_type::integer:
+                    return std::format_to(ctx.out(), "{}", "integer");
+                break;
+                case var::var_type::real:
+                    return std::format_to(ctx.out(), "{}", "real");
+                break;
+                case var::var_type::array:
+                    return std::format_to(ctx.out(), "{}", "array");
+                break;
+                case var::var_type::null_type:
+                    return std::format_to(ctx.out(), "{}", "null");
+                break;
+                case var::var_type::map:
+                    return std::format_to(ctx.out(), "{}", "map");
+                break;
+                default:
+                    throw std::runtime_error(std::format("invalid value of var::var_type: {}", (int)type));
+                break;
+            }
+        }
+    };
 #endif
 
 #define var var
