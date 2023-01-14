@@ -64,6 +64,7 @@ namespace uva
             var(const std::string& _str);
             var(const time_t& _integer);
             var(const char* str);
+            var(const char8_t* __str);
             var(const char* str, size_t i);
             var(const bool& boolean);
             var(const double& d);

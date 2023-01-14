@@ -97,6 +97,13 @@ var::var(const char* __str)
     type = var_type::string;
 }
 
+uva::core::var::var(const char8_t *__str)
+{
+    construct();
+    new(m_value_ptr) string_type((const char*)__str);
+    type = var_type::string;
+}
+
 var::var(const char* __str, size_t __len)
 {
     construct();
