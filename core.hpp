@@ -12,6 +12,9 @@
 
 #ifdef _MSC_VER
     #define CORE_FUNCTION_NAME __func__
+    #ifdef _DEBUG
+        #define __UVA_DEBUG__ 1
+    #endif
 #else
    #define CORE_FUNCTION_NAME __PRETTY_FUNCTION__
 #endif
