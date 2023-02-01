@@ -14,6 +14,10 @@
     #define CORE_FUNCTION_NAME __func__
     #ifdef _DEBUG
         #define __UVA_DEBUG__ 1
+        #define __UVA_DEBUG_LEVEL_DEFAULT__ 1
+    #else
+        #define __UVA_DEBUG__ 0
+        #define __UVA_DEBUG_LEVEL_DEFAULT__ 0
     #endif
 #else
    #define CORE_FUNCTION_NAME __PRETTY_FUNCTION__
@@ -21,6 +25,28 @@
 
 #define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", CORE_FUNCTION_NAME, __type));
 #define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(type)
+
+#if __UVA_OVERRIDE_DEBUG_LEVEL__ > 0
+    constexpr size_t uva_debug_level = __UVA_OVERRIDE_DEBUG_LEVEL__;
+    #define __UVA_DEBUG_LEVEL__ __UVA_OVERRIDE_DEBUG_LEVEL__
+#else 
+    constexpr size_t uva_debug_level = __UVA_DEBUG_LEVEL_DEFAULT__;
+
+    #define __UVA_DEBUG_LEVEL__ __UVA_DEBUG_LEVEL_DEFAULT__
+#endif
+
+#if __UVA_DEBUG_LEVEL__ > 0
+    #include <console.hpp>
+#endif
+
+#define UVA_CHECK_FAILED(level, name) if constexpr (level == 1) { uva::console::log_warning("CHECK FAILED: {} (level {}) at file {}:{}", name, level, file, line); }
+#define UVA_GENERATE_CHECK_PARAMS(...) __VA_ARGS__
+#define UVA_GENERATE_CHECK(name, level, params, ...) inline void name##_F (params, const std::string& file, const size_t& line) {  if constexpr (uva_debug_level >= level) { __VA_ARGS__ } }
+
+UVA_GENERATE_CHECK(UVA_CHECK_RESERVED_BUFFER, 1, UVA_GENERATE_CHECK_PARAMS(const std::string& buffer, size_t len), if(buffer.size() > len) { UVA_CHECK_FAILED(1, "UVA_CHECK_RESERVED_BUFFER") })
+#define UVA_CHECK_RESERVED_BUFFER(buffer, len) UVA_CHECK_RESERVED_BUFFER_F(buffer, len, __FILE__, __LINE__);
+
+#undef max
 
 namespace uva
 {
@@ -74,13 +100,13 @@ namespace uva
             var(const array_type& __array);
             var(array_type&& __array);
             var(const var_type& __array);
+            var(const map_type& __map);
             var(map_type&& __map);
             ~var();
         public:
             var_type type = var_type::null_type;
-        private:
-            void* m_value_ptr = nullptr;
         public:
+            void* m_value_ptr = nullptr;
             //for debugging
 #ifndef UVA_DEBUG_LEVEL > 1
             integer_type* m_integer_ptr = nullptr;
@@ -531,14 +557,10 @@ namespace uva
                 switch (type)
                 {
                 case var::var_type::string:
-                    #ifdef USE_FMT_FORMT
-                        return vformat(as<var_type::string>(), std::make_format_args(__args...));
-                    #else
-                        return std::format(as<var_type::string>(), std::forward<Args>(__args)...);
-                    #endif       
+                    return std::vformat(as<var_type::string>(), std::make_format_args(__args...));
                 break;
                 default:
-                    throw std::runtime_error(std::format("undefined method 'format' for {}", type));
+                    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
                 break;
                 }
             }
@@ -642,6 +664,13 @@ var          operator ""_percent(unsigned long long d);
         };
     }
 #else
+    template <>
+    struct std::formatter<var> : std::formatter<std::string> {
+        auto format(const var& v, format_context& ctx) {
+            return std::format_to(ctx.out(), "{}", v.to_s());
+        }
+    };
+
     template <>
     struct std::formatter<var::var_type> : std::formatter<std::string> {
         auto format(var::var_type type, format_context& ctx) {

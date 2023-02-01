@@ -137,6 +137,13 @@ var::var(const var_type& __type)
     reconstruct(__type);
 }
 
+uva::core::var::var(const map_type & __map)
+{
+    construct();
+    new(m_value_ptr) map_type(__map);
+    type = var_type::map;
+}
+
 var::var(map_type&& __map)
 {
     construct();
@@ -162,7 +169,9 @@ void var::construct(void* __ptr)
 
 void var::construct()
 {
-    construct(__construct());
+    if(!m_value_ptr) {
+        construct(__construct());
+    }
 }
 
 void var::reconstruct(const var& other)
@@ -201,14 +210,16 @@ void var::reconstruct(const var& other)
 
 void var::reconstruct(var&& __var)
 {
-    destruct();
+    // destruct();
 
-    construct(__var.m_value_ptr);
+    // construct(__var.m_value_ptr);
 
-    type = __var.type;
+    // type = __var.type;
 
-    __var.m_value_ptr = nullptr;
-    __var.type = var_type::null_type;
+    // __var.m_value_ptr = nullptr;
+    // __var.type = var_type::null_type;
+
+    reconstruct(__var);
 }
 
 void var::reconstruct(const var_type& __type)
@@ -297,6 +308,29 @@ std::string var::to_s() const
             return std::to_string(as<var_type::integer>());
         case var_type::real:
             return std::format("{}", as<var_type::real>());
+        case var_type::array: {
+            std::string s = "{";
+            size_t reserved = as<var_type::array>().size()*64;
+            s.reserve(reserved);
+            for(const auto& p : as<var_type::array>())
+            {
+                if(p.is_null()) {
+                    s+= "null,";
+                } else {
+                    s+=p.to_s();
+                    s.push_back(',');
+                }
+
+            }
+            if(s.size()) {
+                s.pop_back();
+            }
+            s += " }";
+
+            UVA_CHECK_RESERVED_BUFFER(s, reserved);
+            return s;
+        }
+        break;
         case var_type::map:
             {
                 std::string s = "{";
@@ -488,6 +522,21 @@ var& var::operator=(const bool& b)
 {
     constexpr var_type __type = var_type::integer;
     int64_t i = (int64_t)(b);
+
+    if(type == __type)
+    {
+        as<__type>() = i;
+    } else {
+        reconstruct<integer_type>(i);
+        type =__type;
+    }
+
+    return *this;
+}
+
+var &uva::core::var::operator=(const int &i)
+{
+    constexpr var_type __type = var_type::integer;
 
     if(type == __type)
     {
