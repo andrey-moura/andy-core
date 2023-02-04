@@ -37,9 +37,23 @@
 
 #if __UVA_DEBUG_LEVEL__ > 0
     #include <console.hpp>
+
+    template<int level>
+    inline void UVA_CHECK_FAILED_F(const std::string& name, const std::string& file, const size_t line)
+    {
+        if constexpr (level == 1) {
+            uva::console::log_warning("CHECK FAILED: {} (level {}) at file {}:{}", name, level, file, line);
+        }
+    }
+#else
+    template<int level>
+    inline void UVA_CHECK_FAILED_F(const std::string& name, const std::string& file, const size_t line)
+    {
+        
+    }
 #endif
 
-#define UVA_CHECK_FAILED(level, name) if constexpr (level == 1) { uva::console::log_warning("CHECK FAILED: {} (level {}) at file {}:{}", name, level, file, line); }
+#define UVA_CHECK_FAILED(level, name) UVA_CHECK_FAILED_F<level>(name, file, line);
 #define UVA_GENERATE_CHECK_PARAMS(...) __VA_ARGS__
 #define UVA_GENERATE_CHECK(name, level, params, ...) inline void name##_F (params, const std::string& file, const size_t& line) {  if constexpr (uva_debug_level >= level) { __VA_ARGS__ } }
 
