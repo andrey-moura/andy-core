@@ -276,13 +276,28 @@ namespace uva
             {
                 return as<__type>() == other.as<__type>();
             }
+            bool operator==(std::string_view other) const;
             bool operator==(const var& other) const;
             bool operator==(const long& l) const;
             bool operator==(const double& d) const;
             bool operator==(const std::string& s) const;
             bool operator==(const bool& b) const;
             bool operator==(const int& other) const;
+            template<size_t N>
+            bool operator==(const char(&other)[N]) const
+            {
+                switch(type)
+                {
+                    case var_type::string:
+                        return as<var_type::string>() == other;
+                    break;
+                    default:
+                        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+                    break;
+                }
 
+                return false;
+            }
             bool operator!=(const var& v) const;
             bool operator!=(const double& d) const;
             bool operator!=(const char* s) const;
