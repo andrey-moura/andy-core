@@ -151,6 +151,13 @@ var::var(map_type&& __map)
     type = var_type::map;
 }
 
+uva::core::var::var(color_type &&__color)
+{
+    construct();
+    new(m_value_ptr) color_type(std::move(__color));
+    type = var_type::color;
+}
+
 void* var::__construct()
 {
     return new uint8_t[size_for_buffer];
@@ -200,6 +207,9 @@ void var::reconstruct(const var& other)
         case var_type::map:
             new(m_value_ptr) map_type(other.as<var_type::map>());
         break;
+        case var_type::color:
+            new(m_value_ptr) color_type(other.as<var_type::color>());
+        break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -210,16 +220,14 @@ void var::reconstruct(const var& other)
 
 void var::reconstruct(var&& __var)
 {
-    // destruct();
+    destruct();
 
-    // construct(__var.m_value_ptr);
+    construct(__var.m_value_ptr);
 
-    // type = __var.type;
+    type = __var.type;
 
-    // __var.m_value_ptr = nullptr;
-    // __var.type = var_type::null_type;
-
-    reconstruct(__var);
+    __var.m_value_ptr = nullptr;
+    __var.type = var_type::null_type;
 }
 
 void var::reconstruct(const var_type& __type)
@@ -240,6 +248,9 @@ void var::reconstruct(const var_type& __type)
     break;
     case var_type::map:
         new(m_value_ptr) map_type();
+    break;
+    case var_type::color:
+        as<var_type::color>().~color();
     break;
     case var_type::null_type:
         break;
@@ -281,6 +292,9 @@ void var::destruct()
             break;
             case var_type::map:
                 as<var_type::map>().~map();
+            break;
+            case var_type::color:
+                as<var_type::color>().~color();
             break;
             default:
                 VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -489,6 +503,19 @@ var::operator std::vector<int>() const
         return __arr;
     } else {
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+    }
+}
+
+uva::core::var::operator uva::color() const
+{
+    switch (type)
+    {
+    case var_type::color:
+        return as<var_type::color>();
+        break;
+    default:
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
     }
 }
 

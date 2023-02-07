@@ -8,6 +8,7 @@
 #include <time.h>
 #include <filesystem>
 
+#include <color.hpp>
 #include <string.hpp>
 
 #ifdef _MSC_VER
@@ -88,6 +89,8 @@ namespace uva
             using map_type = std::map<var, var>;
             using map_iterator = map_type::iterator;
             using map_const_iterator = map_type::const_iterator;
+
+            using color_type = color;
         public:
             enum class var_type
             {
@@ -96,7 +99,8 @@ namespace uva
                 integer,
                 real,
                 array,
-                map
+                map,
+                color
             };
             var();
             var(std::initializer_list<var> l);
@@ -116,6 +120,7 @@ namespace uva
             var(const var_type& __array);
             var(const map_type& __map);
             var(map_type&& __map);
+            var(color_type&& __color);
             ~var();
         public:
             var_type type = var_type::null_type;
@@ -128,6 +133,7 @@ namespace uva
             string_type* m_string_ptr = nullptr;
             array_type* m_array_ptr = nullptr;
             map_type* m_map_ptr = nullptr;
+            color_type* m_color_ptr = nullptr;
 #endif
         private:
             void construct();
@@ -196,6 +202,10 @@ namespace uva
                 {
                     return cast_to<map_type>();
                 }
+                if constexpr(__type == var_type::color)
+                {
+                    return cast_to<color_type>();
+                }
             }
             template<var_type __type>
             auto& as()
@@ -224,6 +234,10 @@ namespace uva
                 {
                     return cast_to<map_type>();
                 }
+                if constexpr(__type == var_type::color)
+                {
+                    return cast_to<color_type>();
+                }
             }
         public:
             bool is_null() const;
@@ -237,6 +251,7 @@ namespace uva
             operator bool() const;
             operator double() const;
             operator std::vector<int>() const;
+            operator uva::color() const;
 
             var& operator=(std::initializer_list<var> __array);
             var& operator=(const var& other);
@@ -690,6 +705,9 @@ var          operator ""_percent(unsigned long long d);
         auto format(var::var_type type, format_context& ctx) {
             switch(type)
             {
+                case var::var_type::null_type:
+                    return std::format_to(ctx.out(), "{}", "null");
+                break;
                 case var::var_type::string:
                     return std::format_to(ctx.out(), "{}", "string");
                 break;
@@ -702,11 +720,11 @@ var          operator ""_percent(unsigned long long d);
                 case var::var_type::array:
                     return std::format_to(ctx.out(), "{}", "array");
                 break;
-                case var::var_type::null_type:
-                    return std::format_to(ctx.out(), "{}", "null");
-                break;
                 case var::var_type::map:
                     return std::format_to(ctx.out(), "{}", "map");
+                break;
+                case var::var_type::color:
+                    return std::format_to(ctx.out(), "{}", "color");
                 break;
                 default:
                     throw std::runtime_error(std::format("invalid value of var::var_type: {}", (int)type));
