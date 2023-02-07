@@ -11,15 +11,16 @@
 #include <color.hpp>
 #include <string.hpp>
 
+#ifdef NDEBUG 
+    #define __UVA_DEBUG__ 0
+    #define __UVA_DEBUG_LEVEL_DEFAULT__ 0
+#else
+    #define __UVA_DEBUG__ 1
+    #define __UVA_DEBUG_LEVEL_DEFAULT__ 1
+#endif
+
 #ifdef _MSC_VER
     #define CORE_FUNCTION_NAME __func__
-    #ifdef _DEBUG
-        #define __UVA_DEBUG__ 1
-        #define __UVA_DEBUG_LEVEL_DEFAULT__ 1
-    #else
-        #define __UVA_DEBUG__ 0
-        #define __UVA_DEBUG_LEVEL_DEFAULT__ 0
-    #endif
 #else
    #define CORE_FUNCTION_NAME __PRETTY_FUNCTION__
 #endif
