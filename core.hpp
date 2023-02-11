@@ -128,7 +128,7 @@ namespace uva
         public:
             void* m_value_ptr = nullptr;
             //for debugging
-#ifndef UVA_DEBUG_LEVEL > 1
+#if __UVA_DEBUG_LEVEL__ > 1
             integer_type* m_integer_ptr = nullptr;
             real_type* m_real_ptr = nullptr;
             string_type* m_string_ptr = nullptr;
