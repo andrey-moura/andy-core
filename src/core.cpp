@@ -713,6 +713,39 @@ var var::operator+(const std::string &s) const
     }
 }
 
+var uva::core::var::operator+(const var &v) const
+{
+    switch (type)
+    {
+        case var_type::string:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        case var_type::integer:
+            switch(v.type)
+            {
+                case var_type::integer:
+                    return as<var_type::integer>() + v.as<var_type::integer>();
+                break;
+            };
+        break;
+        case var_type::real:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        case var_type::array:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        case var_type::map:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        case var_type::color:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 var& var::operator+=(const std::string& s)
 {
     switch (type)

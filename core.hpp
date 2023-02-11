@@ -270,6 +270,8 @@ namespace uva
 
             var operator+(const char* s) const;
             var operator+(const std::string& s) const;
+            var operator+(const var& c) const;
+
             var& operator+=(const std::string& s);
 
             template<var_type __type>
