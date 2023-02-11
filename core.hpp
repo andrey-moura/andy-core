@@ -317,6 +317,16 @@ namespace uva
             {
                 return ((T)*this) > other;
             }
+            template<var_type out_type>
+            auto move()
+            {
+                if(out_type != type)
+                {
+                    throw std::runtime_error(std::format("cannot move var of type '{}' into {}", type, out_type));
+                } 
+
+                return std::move(as<out_type>());
+            }
 //FRIEND OPERATORS BEGIN
             friend std::ostream& operator<<(std::ostream& stream, const var& holder)
             {
