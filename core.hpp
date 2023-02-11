@@ -766,4 +766,3 @@ var          operator ""_percent(unsigned long long d);
 #define null var::var_type::null_type
 #define empty_map var::var_type::map
 #define empty_array var::var_type::array
-#define self (*this)

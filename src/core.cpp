@@ -1013,17 +1013,17 @@ var& var::operator[](const var& __k)
 
 const var& var::operator[](const char* __k) const
 {
-    return self[var(__k)];
+    return (*this)[var(__k)];
 }
 
 var& var::operator[](const char* __k)
 {
-    return self[var(__k)];
+    return (*this)[var(__k)];
 }
 
 var &uva::core::var::operator[](const std::string &__k)
 {
-    return self[var(__k)];
+    return (*this)[var(__k)];
 }
 
 var uva::core::var::key(const var &__v)
