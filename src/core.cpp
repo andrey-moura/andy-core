@@ -1049,6 +1049,19 @@ var uva::core::var::key(const var &__v)
     return null;
 }
 
+void uva::core::var::append_to(std::string &__str) const
+{
+    switch (type)
+    {
+    case var::var_type::string:
+        __str.append(as<var_type::string>());
+    break;
+    default:
+        __str.append(to_s());
+        break;
+    }
+}
+
 var::array_const_iterator var::begin() const
 {
     switch (type)

@@ -636,6 +636,10 @@ namespace uva
              *  @return key corresponding to the value or nil if value doesn’t exist
              */
             var key(const var& __v);
+
+            /// @brief Append a string representation of this var into __str.
+            /// @param __str The string which will receive the string representation of this.
+            void append_to(std::string& __str) const;
 //END MAP FUNCTIONS
         };
 
