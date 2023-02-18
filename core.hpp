@@ -11,7 +11,7 @@
 #include <color.hpp>
 #include <string.hpp>
 
-#ifdef NDEBUG  
+#ifdef NDEBUG
     #undef __UVA_DEBUG__
     #define __UVA_DEBUG_LEVEL_DEFAULT__ 0
 #else
