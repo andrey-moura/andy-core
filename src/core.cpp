@@ -1196,8 +1196,11 @@ bool var::empty() const
         case var_type::array:
             return as<var_type::array>().empty();
         break;
+        case var_type::map:
+            return as<var_type::map>().empty();
+        break;
         default:
-            throw std::runtime_error(std::format("undefined method 'empty' for (var_type){}", (size_t)type));
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
     } 
 
