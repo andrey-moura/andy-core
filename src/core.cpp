@@ -315,7 +315,7 @@ std::string var::to_s() const
     switch(type)
     {
         case var_type::null_type:
-            return "null";
+            return "";
         break;
         case var_type::string:
             return as<var_type::string>();
