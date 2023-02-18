@@ -167,11 +167,13 @@ void var::construct(void* __ptr)
 {
     m_value_ptr = __ptr;
 
+#if __UVA_DEBUG_LEVEL__ > 0
     m_integer_ptr = (integer_type*)m_value_ptr;
     m_real_ptr    = (real_type*)m_value_ptr;
     m_string_ptr  = (string_type*)m_value_ptr;
     m_array_ptr   = (array_type*)m_value_ptr;
     m_map_ptr     = (map_type*)m_value_ptr;
+#endif
 }
 
 void var::construct()
