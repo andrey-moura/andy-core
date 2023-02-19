@@ -1,6 +1,3 @@
-#Require a minimum version
-cmake_minimum_required(VERSION 3.16)
-
 project(uva-core)
 
 add_library(uva-core
