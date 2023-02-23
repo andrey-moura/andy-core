@@ -33,29 +33,23 @@ var operator ""_percent(unsigned long long d)
 
 //VAR
 
-var::var()
-{
+//INTEGER CONSTRUCTORS
 
+var::var(const bool& __boolean)
+{
+    construct();
+    as<var_type::integer>() = __boolean;
+    type = var_type::integer;
 }
 
-var::var(const var& other)
-{
-    reconstruct(other);
-}
-
-var::var(var&& other)
-{
-    reconstruct(std::move(other));
-}
-
-var::var(const uint64_t& __integer)
+var::var(const int& __integer)
 {
     construct();
     as<var_type::integer>() = __integer;
     type = var_type::integer;
 }
 
-var::var(const int& __integer)
+var::var(const uint64_t& __integer)
 {
     construct();
     as<var_type::integer>() = __integer;
@@ -69,12 +63,7 @@ var::var(const time_t& __integer)
     type = var_type::integer;
 }
 
-var::var(const bool& boolean)
-{
-    construct();
-    as<var_type::integer>() = boolean;
-    type = var_type::integer;
-}
+//REAL CONSTRUCTORS
 
 var::var(const double& d)
 {
@@ -83,12 +72,16 @@ var::var(const double& d)
     type = var_type::real;
 }
 
-var::var(const std::string& __str)
+//COLOR CONSTRUCTORS
+
+uva::core::var::var(const color_type &__color)
 {
     construct();
-    new(m_value_ptr) string_type(__str);
-    type = var_type::string;
+    new(m_value_ptr) color_type(__color);
+    type = var_type::color;
 }
+
+//STRING CONSTRUCTORS
 
 var::var(const char* __str)
 {
@@ -111,6 +104,22 @@ var::var(const char* __str, size_t __len)
     type = var_type::string;
 }
 
+var::var(const std::string& __str)
+{
+    construct();
+    new(m_value_ptr) string_type(__str);
+    type = var_type::string;
+}
+
+//ARRAY CONSTRUCTORS
+
+var::var(array_type&& __array)
+{
+    construct();
+    new(m_value_ptr) array_type(std::move(__array));
+    type = var_type::array;
+}
+
 var::var(std::initializer_list<var> l)
 {
     construct();
@@ -125,16 +134,29 @@ var::var(const array_type& __array)
     type = var_type::array;
 }
 
-var::var(array_type&& __array)
+uva::core::var::var(const std::vector<int> &__array)
 {
     construct();
-    new(m_value_ptr) array_type(std::move(__array));
+    new(m_value_ptr) array_type();
     type = var_type::array;
+
+    size_t size = __array.size();
+
+    as<var_type::array>().reserve(size);
+
+    for(size_t i = 0; i < size; ++i)
+    {
+        as<var_type::array>().push_back(var(__array[i]));
+    }
 }
 
-var::var(const var_type& __type)
+//MAP CONSTRUCTORS
+
+var::var(map_type&& __map)
 {
-    reconstruct(__type);
+    construct();
+    new(m_value_ptr) map_type(std::move(__map));
+    type = var_type::map;
 }
 
 uva::core::var::var(const map_type & __map)
@@ -144,19 +166,26 @@ uva::core::var::var(const map_type & __map)
     type = var_type::map;
 }
 
-var::var(map_type&& __map)
+//VAR CONSTRUCTORS
+
+var::var(var&& other)
 {
-    construct();
-    new(m_value_ptr) map_type(std::move(__map));
-    type = var_type::map;
+    reconstruct(std::move(other));
 }
 
-uva::core::var::var(color_type &&__color)
+var::var(const var& other)
 {
-    construct();
-    new(m_value_ptr) color_type(std::move(__color));
-    type = var_type::color;
+    reconstruct(other);
 }
+
+//VAR_TYPE CONSTRUCTORS
+
+var::var(const var_type& __type)
+{
+    reconstruct(__type);
+}
+
+//CONTRUCTORS HELPERS
 
 void* var::__construct()
 {
@@ -841,6 +870,32 @@ bool var::operator==(const int& other) const
     }
 
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+}
+
+bool uva::core::var::operator==(const array_type &other) const
+{
+    switch (type)
+    {
+        case var_type::array:{
+            array_type self = as<var_type::array>();
+
+            if(self.size() != other.size()) {
+                return false;
+            }
+
+            for(size_t i = 0; i < other.size(); ++i) {
+                if(self[i] != other[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        break;
+        default:
+            return false;
+        break;
+    }
 }
 
 bool var::operator!=(const var& v) const

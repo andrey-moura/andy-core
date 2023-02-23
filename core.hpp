@@ -96,32 +96,63 @@ namespace uva
             enum class var_type
             {
                 null_type,
-                string,
                 integer,
                 real,
+                color,
+                string,
                 array,
                 map,
-                color
+                max
             };
-            var();
-            var(std::initializer_list<var> l);
-            var(const var& other);
-            var(var&& other);
-            var(const uint64_t& _integer);
+            //Function declarations MUST match this order:
+
+            //null
+
+            var() = default;
+
+            //integer
+
+            var(const bool& boolean);
             var(const int& _integer);
-            var(const std::string& _str);
+            var(const uint64_t& _integer);
             var(const time_t& _integer);
+
+            //real
+
+            var(const double& d);
+
+            //color
+
+            var(const color_type& __color);
+
+            //string
+
             var(const char* str);
             var(const char8_t* __str);
             var(const char* str, size_t i);
-            var(const bool& boolean);
-            var(const double& d);
-            var(const array_type& __array);
+            var(const std::string& _str);
+
+            //array
+
             var(array_type&& __array);
-            var(const var_type& __array);
-            var(const map_type& __map);
+            var(std::initializer_list<var> l);
+            var(const array_type& __array);
+            var(const std::vector<int>& __array);
+
+            //map
+
             var(map_type&& __map);
-            var(color_type&& __color);
+            var(const map_type& __map);
+
+
+            //var
+
+            var(const var& other);
+            var(var&& other);
+
+            //var_type
+
+            var(const var_type& __array);
             ~var();
         public:
             var_type type = var_type::null_type;
@@ -286,6 +317,7 @@ namespace uva
             bool operator==(const std::string& s) const;
             bool operator==(const bool& b) const;
             bool operator==(const int& other) const;
+            bool operator==(const array_type& other) const;
             template<size_t N>
             bool operator==(const char(&other)[N]) const
             {
