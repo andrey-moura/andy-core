@@ -11,56 +11,10 @@
 #include <color.hpp>
 #include <string.hpp>
 
-#ifdef NDEBUG
-    #undef __UVA_DEBUG__
-    #define __UVA_DEBUG_LEVEL_DEFAULT__ 0
-#else
-    #define __UVA_DEBUG__ 1
-    #define __UVA_DEBUG_LEVEL_DEFAULT__ 1
-#endif
+#include <uva.hpp>
 
-#ifdef _MSC_VER
-    #define CORE_FUNCTION_NAME __func__
-#else
-   #define CORE_FUNCTION_NAME __PRETTY_FUNCTION__
-#endif
-
-#define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", CORE_FUNCTION_NAME, __type));
+#define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", UVA_FUNCTION_NAME, __type));
 #define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(type)
-
-#if __UVA_OVERRIDE_DEBUG_LEVEL__ > 0
-    constexpr size_t uva_debug_level = __UVA_OVERRIDE_DEBUG_LEVEL__;
-    #define __UVA_DEBUG_LEVEL__ __UVA_OVERRIDE_DEBUG_LEVEL__
-#else 
-    constexpr size_t uva_debug_level = __UVA_DEBUG_LEVEL_DEFAULT__;
-
-    #define __UVA_DEBUG_LEVEL__ __UVA_DEBUG_LEVEL_DEFAULT__
-#endif
-
-#if __UVA_DEBUG_LEVEL__ > 0
-    #include <console.hpp>
-
-    template<int level>
-    inline void UVA_CHECK_FAILED_F(const std::string& name, const std::string& file, const size_t line)
-    {
-        if constexpr (level == 1) {
-            uva::console::log_warning("CHECK FAILED: {} (level {}) at file {}:{}", name, level, file, line);
-        }
-    }
-#else
-    template<int level>
-    inline void UVA_CHECK_FAILED_F(const std::string& name, const std::string& file, const size_t line)
-    {
-        
-    }
-#endif
-
-#define UVA_CHECK_FAILED(level, name) UVA_CHECK_FAILED_F<level>(name, file, line);
-#define UVA_GENERATE_CHECK_PARAMS(...) __VA_ARGS__
-#define UVA_GENERATE_CHECK(name, level, params, ...) inline void name##_F (params, const std::string& file, const size_t& line) {  if constexpr (uva_debug_level >= level) { __VA_ARGS__ } }
-
-UVA_GENERATE_CHECK(UVA_CHECK_RESERVED_BUFFER, 1, UVA_GENERATE_CHECK_PARAMS(const std::string& buffer, size_t len), if(buffer.size() > len) { UVA_CHECK_FAILED(1, "UVA_CHECK_RESERVED_BUFFER") })
-#define UVA_CHECK_RESERVED_BUFFER(buffer, len) UVA_CHECK_RESERVED_BUFFER_F(buffer, len, __FILE__, __LINE__);
 
 #undef max
 
