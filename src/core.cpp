@@ -1522,6 +1522,32 @@ var var::pluralize()
     return uva::string::pluralize(as<var_type::string>());
 }
 
+bool uva::core::var::starts_with(std::string_view sv)
+{
+    switch(type)
+    {
+        case var_type::string:
+            return as<var_type::string>().starts_with(sv);
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+bool uva::core::var::ends_with(std::string_view sv)
+{
+    switch(type)
+    {
+        case var_type::string:
+            return as<var_type::string>().ends_with(sv);
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 //END VAR
 
 //CORE
