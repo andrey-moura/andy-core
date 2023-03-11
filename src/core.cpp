@@ -359,13 +359,8 @@ std::string var::to_s() const
             s.reserve(reserved);
             for(const auto& p : as<var_type::array>())
             {
-                if(p.is_null()) {
-                    s+= "null,";
-                } else {
-                    s+=p.to_s();
-                    s.push_back(',');
-                }
-
+                s+=p.to_s();
+                s.push_back(',');
             }
             if(s.size()) {
                 s.pop_back();
