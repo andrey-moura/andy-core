@@ -501,6 +501,9 @@ var::operator bool() const
     case var_type::string:
         return as<var_type::string>().size();
     break;
+    case var_type::array:
+        return as<var_type::array>().size();
+    break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
