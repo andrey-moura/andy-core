@@ -1032,7 +1032,7 @@ var& var::operator[](const int& __n)
     }
 }
 
-const var& var::operator[](const var& __k) const
+const var &var::operator[](const var &__k) const
 {
     switch(type)
     {
