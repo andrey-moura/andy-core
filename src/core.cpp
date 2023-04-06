@@ -120,13 +120,6 @@ var::var(array_type&& __array)
     type = var_type::array;
 }
 
-var::var(std::initializer_list<var> l)
-{
-    construct();
-    new(m_value_ptr) array_type(std::move(l));
-    type = var_type::array;
-}
-
 var::var(const array_type& __array)
 {
     construct();
@@ -298,6 +291,16 @@ var::~var()
     __delete();
 }
 
+var uva::core::var::array(array_type && __array)
+{
+    return var(std::move(__array));
+}
+
+var uva::core::var::map(map_type && __map)
+{
+    return var(std::move(__map));
+}
+
 void var::__delete()
 {
     destruct();
@@ -414,6 +417,132 @@ std::string var::to_s() const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
+std::string uva::core::var::to_typed_s(char array_open, char array_close) const
+{
+    switch(type)
+    {
+        case var_type::null_type:
+            return "null";
+        break;
+        case var_type::string:
+            {
+                std::string ret;
+                ret.reserve(as<var_type::string>().size()+15);
+
+                ret.push_back('\"');
+                
+                std::string_view sv = as<var_type::string>();
+
+                while(sv.size()) {
+                    const char& c = sv.front();
+                    switch(c)
+                    {
+                        case '\t':
+                            ret.push_back('\\');
+                            ret.push_back('t');
+                        break;
+                        case '\n':
+                            ret.push_back('\\');
+                            ret.push_back('n');
+                        break;
+                        case '\r':
+                            ret.push_back('\\');
+                            ret.push_back('r');
+                        break;
+                        case '\"':
+                            ret.push_back('\\');
+                            ret.push_back('\"');
+                        break;
+                        case '\\':
+                            ret.push_back('\\');
+                            ret.push_back('\\');
+                        break;
+                        default:
+                            ret.push_back(c);
+                        break;
+                    }
+
+                    sv.remove_prefix(1);
+                }
+
+                ret.push_back('\"');
+
+                return ret;
+            }
+        break;
+        case var_type::integer:
+            return std::to_string(as<var_type::integer>());
+        case var_type::real:
+            return std::format("{}", as<var_type::real>());
+        case var_type::array: {
+            std::string s;
+            size_t reserved = as<var_type::array>().size()*64;
+            s.reserve(reserved);
+            if(array_open) {
+                s.push_back(array_open);
+                s.push_back(' ');
+            }
+            for(const auto& p : as<var_type::array>())
+            {
+                s+=p.to_typed_s();
+                s.push_back(',');
+            }
+            if(s.size()) {
+                s.pop_back();
+            }
+
+            if(array_close) {
+                s.push_back(array_close);
+                s.push_back(' ');
+            }
+
+            UVA_CHECK_RESERVED_BUFFER(s, reserved);
+            return s;
+        }
+        break;
+        case var_type::map:
+            {
+                std::string s = "{";
+
+                for(const auto& p : as<var_type::map>())
+                {
+                    s += " {";
+
+                    if(p.first.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s += p.first.to_typed_s();
+
+                    if(p.first.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s+= ", ";
+
+                    if(p.second.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s += p.second.to_typed_s();
+
+                    if(p.second.type == var_type::string) {
+                        s.push_back('\"');
+                    }
+
+                    s += " },";
+                }
+
+                s += " }";
+
+                return s;
+            }
+        break;
+    }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+}
+
 int64_t var::to_i() const
 {
     switch(type)
@@ -455,6 +584,24 @@ int64_t var::to_i() const
 
     throw std::runtime_error(std::format("failed to convert from (var_type){} to integer", (size_t)type));
     return -1;
+}
+
+var::real_type var::to_f() const
+{
+    switch(type)
+    {
+        case var_type::null_type:
+            return 0;
+        break;
+        case var_type::real:
+            return as<var_type::real>();
+        break;
+        case var_type::integer:
+            return (real_type)as<var_type::integer>();
+        break;
+    }
+
+    VAR_THROW_CANT_CAST_TO_TYPE(type, var_type::real);
 }
 
 var::operator int() const
@@ -676,15 +823,15 @@ var& var::operator=(array_type&& __array)
     return *this;
 }
 
-var& var::operator=(std::initializer_list<var> __array)
+var &uva::core::var::operator=(const map_type & __map)
 {
-    constexpr var_type __type = var_type::array;
+    constexpr var_type __type = var_type::map;
 
     if(type == __type)
     {
-        as<__type>() = __array;
+        as<__type>() = __map;
     } else {
-        reconstruct<array_type>(std::move(__array));
+        reconstruct<map_type>(__map);
         type = __type;
     }
 
@@ -775,6 +922,24 @@ var uva::core::var::operator+(const var &v) const
     }
 }
 
+var &uva::core::var::operator++()
+{
+    switch (type)
+    {
+        case var_type::integer:
+            as<var_type::integer>()++;
+        break;
+        case var_type::real:
+            as<var_type::real>()++;
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+
+    return *this;
+}
+
 var& var::operator+=(const std::string& s)
 {
     switch (type)
@@ -792,6 +957,10 @@ var& var::operator+=(const std::string& s)
 
 bool var::operator==(const var& other) const
 {
+    if(other.type == var::var_type::null_type) {
+        return type == var::var_type::null_type;
+    }
+
     switch(type)
     {
         case var_type::null_type:
@@ -970,6 +1139,44 @@ bool var::operator<(const var& other) const
 
     throw std::runtime_error(std::format("cannot compare (var_type){} to (var_type){}", (size_t)type, (size_t)other.type));
     return false;
+}
+
+var uva::core::var::operator/(const var &other) const
+{
+    switch (type)
+    {
+        case var_type::integer:
+            switch (other.type)
+            {
+                case var_type::integer:
+                    return as<var_type::integer>() / other.as<var_type::integer>();
+                break;
+                case var_type::real:
+                    return as<var_type::integer>() / other.as<var_type::real>();
+                break;
+                default:
+                    VAR_THROW_CANT_CAST_TO_THIS_TYPE(other.type);
+                break;
+            }
+        break;
+        case var_type::real:
+            switch (other.type)
+            {
+                case var_type::integer:
+                    return as<var_type::real>() / other.as<var_type::integer>();
+                break;
+                case var_type::real:
+                    return as<var_type::real>() / other.as<var_type::real>();
+                break;
+                default:
+                    VAR_THROW_CANT_CAST_TO_THIS_TYPE(other.type);
+                break;
+            }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 const var& var::operator[](const size_t& i) const
@@ -1270,6 +1477,19 @@ bool var::empty() const
         break;
     } 
 
+}
+
+var &uva::core::var::back()
+{
+    switch(type)
+    {
+        case var_type::array:
+            return as<var_type::array>().back();
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    } 
 }
 
 var::array_const_iterator var::lower_bound(const var& value) const

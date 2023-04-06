@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <initializer_list>
 #include <format.hpp>
 #include <time.h>
 #include <filesystem>
@@ -15,6 +14,9 @@
 
 #define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", UVA_FUNCTION_NAME, __type));
 #define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(type)
+
+#define VAR_THROW_CANT_CAST_TO_TYPE(left, right) throw std::runtime_error(std::format("{}: {} can't be casted to {}", UVA_FUNCTION_NAME, left, right));
+#define VAR_THROW_CANT_CAST_TO_THIS_TYPE(left) VAR_THROW_CANT_CAST_TO_TYPE(left, type)
 
 #undef max
 
@@ -30,6 +32,7 @@ namespace uva
         };
         class var
         {
+        public:
             using integer_type = int64_t;
             using bool_type = int64_t;
             using real_type = double;
@@ -89,7 +92,6 @@ namespace uva
             //array
 
             var(array_type&& __array);
-            var(std::initializer_list<var> l);
             var(const array_type& __array);
             var(const std::vector<int>& __array);
 
@@ -108,6 +110,17 @@ namespace uva
 
             var(const var_type& __array);
             ~var();
+
+            //initializers
+
+            /// @brief Creates a var from an array-like initialization syntax
+            /// @param __array Anything which can be used to create an array
+            /// @return An var equivalent to an array created with the same arguments
+            static var array(array_type&& __array = array_type());
+            /// @brief Creates a var from a map-like initialization syntax
+            /// @param __map Anything which can be used to create a map
+            /// @return An var equivalent to a map created with the same arguments
+            static var map(map_type&& __map = map_type());
         public:
             var_type type = var_type::null_type;
         public:
@@ -228,7 +241,9 @@ namespace uva
         public:
             bool is_null() const;
             std::string to_s() const;
+            std::string to_typed_s(char array_open = '{', char array_close = '}') const;
             int64_t to_i() const;
+            real_type to_f() const;
         public:
             operator int() const;
             operator uint64_t() const;
@@ -239,7 +254,6 @@ namespace uva
             operator std::vector<int>() const;
             operator uva::color() const;
 
-            var& operator=(std::initializer_list<var> __array);
             var& operator=(const var& other);
             var& operator=(var&& other);
             var& operator=(const bool& b);
@@ -251,11 +265,14 @@ namespace uva
             var& operator=(const unsigned char* c);
             var& operator=(const std::string& s);
             var& operator=(array_type&& __array);
+            var& operator=(const map_type& __map);
             var& operator=(const var_type& __type);
 
             var operator+(const char* s) const;
             var operator+(const std::string& s) const;
             var operator+(const var& c) const;
+
+            var& operator++();
 
             var& operator+=(const std::string& s);
 
@@ -303,6 +320,8 @@ namespace uva
             {
                 return ((T)*this) > other;
             }
+
+            var operator/(const var& other) const;
             template<var_type out_type>
             auto move()
             {
@@ -458,7 +477,9 @@ namespace uva
              *  @return true if the %vector is empty.
              */
             bool empty() const;
-
+            /// @brief Access last element in the array
+            /// @return a reference to the last element
+            var& back();
             /**
              *  @brief Finds the first position in which @a val could be inserted
              *         without changing the ordering.
