@@ -94,6 +94,7 @@ namespace uva
             var(array_type&& __array);
             var(const array_type& __array);
             var(const std::vector<int>& __array);
+            var(const std::vector<std::string>& __array);
 
             //map
 

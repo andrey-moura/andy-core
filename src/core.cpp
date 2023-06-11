@@ -143,6 +143,22 @@ uva::core::var::var(const std::vector<int> &__array)
     }
 }
 
+uva::core::var::var(const std::vector<std::string> &__array)
+{
+    construct();
+    new(m_value_ptr) array_type();
+    type = var_type::array;
+
+    size_t size = __array.size();
+
+    as<var_type::array>().reserve(size);
+
+    for(size_t i = 0; i < size; ++i)
+    {
+        as<var_type::array>().push_back(var(__array[i]));
+    }
+}
+
 //MAP CONSTRUCTORS
 
 var::var(map_type&& __map)
