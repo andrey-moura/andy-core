@@ -239,6 +239,22 @@ namespace uva
                     return cast_to<color_type>();
                 }
             }
+            template<auto __type>
+            constexpr bool is_a()
+            {
+                //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
+                //it throws compilation error. The function_is_same was created to allow this to work.
+
+                if constexpr (uva::string::function_is_same<__type, var::array>()) {
+                    return type == var_type::array;
+                }
+
+                if constexpr (uva::string::function_is_same<__type, var::map>()) {
+                    return type == var_type::map;
+                }
+
+                return false;
+            }
         public:
             bool is_null() const;
             std::string to_s() const;
