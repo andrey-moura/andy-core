@@ -175,6 +175,18 @@ uva::core::var::var(const map_type & __map)
     type = var_type::map;
 }
 
+uva::core::var::var(const std::map<std::string, std::string> &__map)
+{
+    construct();
+    new(m_value_ptr) map_type();
+    type = var_type::map;
+
+    for(const auto& pair : __map)
+    {
+        as<var_type::map>().insert({var(std::move(pair.first)), var(std::move(pair.second))});
+    }
+}
+
 //VAR CONSTRUCTORS
 
 var::var(var&& other)

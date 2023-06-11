@@ -100,7 +100,7 @@ namespace uva
 
             var(map_type&& __map);
             var(const map_type& __map);
-
+            var(const std::map<std::string, std::string>& __map);
 
             //var
 
