@@ -1685,8 +1685,20 @@ var var::fetch(const var& __value, const var& __default) const
             }
 
             return __default;
+            break;
         }
-        break;
+        case var_type::array:
+        {
+            auto& array = as<var_type::array>();
+            auto it = std::find(array.begin(), array.end(), __value);
+            if(it != array.end())
+            {
+                return *it;
+            }
+
+            return __default;
+            break;
+        }
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
