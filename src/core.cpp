@@ -1806,6 +1806,36 @@ bool uva::core::var::ends_with(std::string_view sv) const
     }
 }
 
+bool uva::core::var::ends_with(const var& sufix) const
+{
+    switch(type)
+    {
+        case var_type::string:
+            switch(sufix.type)
+            {
+                case var_type::array: {
+                    const array_type& array = sufix.as<var_type::array>();
+
+                    for(size_t i = 0; i < array.size(); ++i) {
+                        if(ends_with(array[i])) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+                break;
+                case var_type::string:
+                    return as<var_type::string>().ends_with(sufix.as<var_type::string>());
+                break;
+            }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 //END VAR
 
 //CORE

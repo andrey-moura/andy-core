@@ -654,6 +654,8 @@ namespace uva
             /// @param sv The string which this should ends with
             /// @return True if this ends with sv, false otherwise
             bool ends_with(std::string_view sv) const;
+
+            bool ends_with(const var& sufix) const;
 //END STRING FUNCTIONS
 
 //MAP FUNCTIONS
