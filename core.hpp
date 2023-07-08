@@ -621,7 +621,7 @@ namespace uva
              *  @brief Add suffix of plural to the word in self.
              *  @return A pluralized copy of self.
              */
-            var downcase();
+            var to_downcase() const;
             /**
              *  @brief Converts all characters in the string to it's lowercase.
              *  @return A downcased copy of self.

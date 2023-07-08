@@ -1760,11 +1760,11 @@ var var::capitalize()
     return uva::string::capitalize(as<var_type::string>());
 }
 
-var var::downcase()
+var var::to_downcase() const
 {
     if(type != var_type::string)
     {
-        throw std::runtime_error(std::format("undefined method 'downcase' for {}", type));
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
     }
 
     return uva::string::tolower(as<var_type::string>());
