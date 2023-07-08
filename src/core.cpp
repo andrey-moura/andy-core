@@ -1350,6 +1350,34 @@ void uva::core::var::append_to(std::string &__str) const
     }
 }
 
+std::vector<var> select_array(bool (*selector)(const var&), std::vector<var>& array)
+{
+    std::vector<var> new_array;
+    new_array.reserve(array.size());
+
+    for(size_t i = 0; i < array.size(); ++i)
+    {
+        if(selector(array[i])) {
+            new_array.push_back(array[i]);
+        }
+    }
+
+    return new_array;
+}
+
+var uva::core::var::select(bool (*selector)(const var&))
+{
+    switch (type)
+    {
+    case var::var_type::array:
+        return select_array(selector, as<var_type::array>());
+    break;
+    default:
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 var::array_const_iterator var::begin() const
 {
     switch (type)
