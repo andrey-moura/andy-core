@@ -1780,7 +1780,7 @@ var var::pluralize()
     return uva::string::pluralize(as<var_type::string>());
 }
 
-bool uva::core::var::starts_with(std::string_view sv)
+bool uva::core::var::starts_with(std::string_view sv) const
 {
     switch(type)
     {
@@ -1793,7 +1793,7 @@ bool uva::core::var::starts_with(std::string_view sv)
     }
 }
 
-bool uva::core::var::ends_with(std::string_view sv)
+bool uva::core::var::ends_with(std::string_view sv) const
 {
     switch(type)
     {

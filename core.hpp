@@ -649,11 +649,11 @@ namespace uva
             /// @brief Checks if string has a prefix
             /// @param sv The string which this should starts with
             /// @return True if this starts with sv, false otherwise
-            bool starts_with(std::string_view sv);
+            bool starts_with(std::string_view sv) const;
             /// @brief Checks if string has a sufix
             /// @param sv The string which this should ends with
             /// @return True if this ends with sv, false otherwise
-            bool ends_with(std::string_view sv);
+            bool ends_with(std::string_view sv) const;
 //END STRING FUNCTIONS
 
 //MAP FUNCTIONS
