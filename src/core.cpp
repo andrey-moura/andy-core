@@ -666,6 +666,9 @@ var::operator bool() const
     case var_type::array:
         return as<var_type::array>().size();
     break;
+    case var_type::map:
+        return as<var_type::map>().size();
+    break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
