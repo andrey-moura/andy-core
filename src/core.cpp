@@ -534,32 +534,19 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close) const
 
                 for(const auto& p : as<var_type::map>())
                 {
-                    s += " {";
-
-                    if(p.first.type == var_type::string) {
-                        s.push_back('\"');
-                    }
-
                     s += p.first.to_typed_s();
 
-                    if(p.first.type == var_type::string) {
-                        s.push_back('\"');
-                    }
-
-                    s+= ", ";
-
-                    if(p.second.type == var_type::string) {
-                        s.push_back('\"');
-                    }
+                    s.push_back(':');
+                    s.push_back(' ');
 
                     s += p.second.to_typed_s();
 
-                    if(p.second.type == var_type::string) {
-                        s.push_back('\"');
-                    }
-
-                    s += " },";
+                    s.push_back(',');
+                    s.push_back(' ');
                 }
+
+                s.pop_back();
+                s.pop_back();
 
                 s += " }";
 
