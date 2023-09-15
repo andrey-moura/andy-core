@@ -312,6 +312,9 @@ namespace uva
             {
                 switch(type)
                 {
+                    case var_type::null_type;
+                        return false;
+                    break;
                     case var_type::string:
                         return as<var_type::string>() == other;
                     break;
