@@ -1236,7 +1236,8 @@ var uva::core::var::operator/(const var &other) const
 
 const var& var::operator[](const size_t& i) const
 {
-    return as<var_type::array>()[i];
+    auto& array = as<var_type::array>();
+    return array[i];
 }
 
 var& var::operator[](const size_t& i)
