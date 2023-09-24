@@ -259,7 +259,7 @@ namespace uva
         public:
             bool is_null() const;
             std::string to_s() const;
-            std::string to_typed_s(char array_open = '{', char array_close = '}') const;
+            std::string to_typed_s(char array_open = '{', char array_close = '}', bool double_quote = true) const;
             int64_t to_i() const;
             real_type to_f() const;
         public:

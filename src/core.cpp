@@ -457,8 +457,19 @@ std::string var::to_s() const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
-std::string uva::core::var::to_typed_s(char array_open, char array_close) const
+std::string uva::core::var::to_typed_s(char array_open, char array_close, bool double_quote) const
 {
+    char quote;
+    char other_quote;
+
+    if(double_quote) {
+        quote = '"';
+        other_quote = '\'';
+    } else {
+        quote = '\'';
+        other_quote = '"';
+    }
+
     switch(type)
     {
         case var_type::null_type:
@@ -469,7 +480,7 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close) const
                 std::string ret;
                 ret.reserve(as<var_type::string>().size()+15);
 
-                ret.push_back('\"');
+                ret.push_back(quote);
                 
                 std::string_view sv = as<var_type::string>();
 
@@ -489,9 +500,19 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close) const
                             ret.push_back('\\');
                             ret.push_back('r');
                         break;
-                        case '\"':
-                            ret.push_back('\\');
+                        case '"':
+                            if(double_quote) {
+                                ret.push_back('\\');
+                            }
+                            
                             ret.push_back('\"');
+                        break;
+                        case '\'':
+                            if(double_quote) {
+                                ret.push_back('\\');
+                            }
+
+                            ret.push_back('\'');
                         break;
                         case '\\':
                             ret.push_back('\\');
@@ -505,7 +526,7 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close) const
                     sv.remove_prefix(1);
                 }
 
-                ret.push_back('\"');
+                ret.push_back(quote);
 
                 return ret;
             }
@@ -518,17 +539,21 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close) const
             std::string s;
             size_t reserved = as<var_type::array>().size()*64;
             s.reserve(reserved);
+            
             if(array_open) {
                 s.push_back(array_open);
                 s.push_back(' ');
             }
+
             for(const auto& p : as<var_type::array>())
             {
-                s+=p.to_typed_s();
+                s+=p.to_typed_s(array_open, array_close, double_quote);
                 s.push_back(',');
             }
+
             if(s.size()) {
                 s.pop_back();
+                s.push_back(' ');
             }
 
             if(array_close) {
