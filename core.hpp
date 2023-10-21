@@ -594,6 +594,42 @@ namespace uva
             void each_string(std::function<void(const uva::core::var& value)> __f) const;
             void each_string(std::function<void(uva::core::var& value)> __f);
             public:
+                template<typename T>
+                void for_each(void(*function)(T&))
+                {   
+					switch(type)
+					{
+						case var_type::array:
+						{
+							auto& array = as<var::array>();
+                            for(size_t i = 0; i < array.size(); ++i) {
+							    function(array[i]);
+                            }
+						}
+                        break;
+						default:
+							VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+						break;
+					}
+                }
+                template<typename T>
+                void for_each(void(*function)(T&, void*), void* data = nullptr)
+                {   
+					switch(type)
+					{
+						case var_type::array:
+						{
+							auto& array = as<var::array>();
+                            for(size_t i = 0; i < array.size(); ++i) {
+							    function(array[i], data);
+                            }
+						}
+                        break;
+						default:
+							VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+						break;
+					}
+                }
 //END ARRAY FUNCTIONS
 
 //ARRAY/MAP FUNCTIONS
