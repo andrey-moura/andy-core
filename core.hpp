@@ -742,7 +742,7 @@ namespace uva
 
             /// @brief Append a string representation of this var into __str.
             /// @param __str The string which will receive the string representation of this.
-            void append_to(std::string& __str) const;
+            void append_to(std::string& __str, bool typed = false) const;
 
             var select(bool(*selector)(const var&));
 //END MAP FUNCTIONS
