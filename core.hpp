@@ -631,7 +631,7 @@ namespace uva
 					}
                 }
 //END ARRAY FUNCTIONS
-
+                bool includes(const var& value) const;
 //ARRAY/MAP FUNCTIONS
             private:
                 var join_array(const char& __separator) const;
