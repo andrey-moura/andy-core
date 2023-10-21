@@ -38,28 +38,28 @@ var operator ""_percent(unsigned long long d)
 var::var(const bool& __boolean)
 {
     construct();
-    as<var_type::integer>() = __boolean;
+    as<var::integer>() = __boolean;
     type = var_type::integer;
 }
 
 var::var(const int& __integer)
 {
     construct();
-    as<var_type::integer>() = __integer;
+    as<var::integer>() = __integer;
     type = var_type::integer;
 }
 
 var::var(const uint64_t& __integer)
 {
     construct();
-    as<var_type::integer>() = __integer;
+    as<var::integer>() = __integer;
     type = var_type::integer;
 }
 
 var::var(const time_t& __integer)
 {
     construct();
-    as<var_type::integer>() = __integer;
+    as<var::integer>() = __integer;
     type = var_type::integer;
 }
 
@@ -68,18 +68,18 @@ var::var(const time_t& __integer)
 var::var(const double& d)
 {
     construct();
-    as<var_type::real>() = d;
+    as<var::real>() = d;
     type = var_type::real;
 }
 
 //COLOR CONSTRUCTORS
 
-uva::core::var::var(const color_type &__color)
-{
-    construct();
-    new(m_value_ptr) color_type(__color);
-    type = var_type::color;
-}
+// uva::core::var::var(const color_type &__color)
+// {
+//     construct();
+//     new(m_value_ptr) color_type(__color);
+//     type = var_type::color;
+// }
 
 //STRING CONSTRUCTORS
 
@@ -111,6 +111,13 @@ var::var(const std::string& __str)
     type = var_type::string;
 }
 
+uva::core::var::var(string_type && __string)
+{
+    construct();
+    new(m_value_ptr) string_type(std::move(__string));
+    type = var_type::string;    
+}
+
 //ARRAY CONSTRUCTORS
 
 var::var(array_type&& __array)
@@ -135,11 +142,11 @@ uva::core::var::var(const std::vector<int> &__array)
 
     size_t size = __array.size();
 
-    as<var_type::array>().reserve(size);
+    as<var::array>().reserve(size);
 
     for(size_t i = 0; i < size; ++i)
     {
-        as<var_type::array>().push_back(var(__array[i]));
+        as<var::array>().push_back(var(__array[i]));
     }
 }
 
@@ -151,11 +158,11 @@ uva::core::var::var(const std::vector<std::string> &__array)
 
     size_t size = __array.size();
 
-    as<var_type::array>().reserve(size);
+    as<var::array>().reserve(size);
 
     for(size_t i = 0; i < size; ++i)
     {
-        as<var_type::array>().push_back(var(__array[i]));
+        as<var::array>().push_back(var(__array[i]));
     }
 }
 
@@ -183,7 +190,7 @@ uva::core::var::var(const std::map<std::string, std::string> &__map)
 
     for(const auto& pair : __map)
     {
-        as<var_type::map>().insert({var(std::move(pair.first)), var(std::move(pair.second))});
+        as<var::map>().insert({var(std::move(pair.first)), var(std::move(pair.second))});
     }
 }
 
@@ -195,7 +202,7 @@ uva::core::var::var(const std::map<std::string, uva::core::var> &__map)
 
     for(const auto& pair : __map)
     {
-        as<var_type::map>().insert({var(std::move(pair.first)), var(std::move(pair.second))});
+        as<var::map>().insert({var(std::move(pair.first)), var(std::move(pair.second))});
     }
 }
 
@@ -256,23 +263,22 @@ void var::reconstruct(const var& other)
         break;
         case var_type::integer:
             //does not need constructor
-            as<var_type::integer>() = other.as<var_type::integer>();
+            as<var::integer>() = other.as<var::integer>();
         break;
         case var_type::real:
             //does not need constructor
-            as<var_type::real>() = other.as<var_type::real>();
+            as<var::real>() = other.as<var::real>();
         break;
         case var_type::string:
-            new(m_value_ptr) string_type(other.as<var_type::string>());
+            new(m_value_ptr) string_type(other.as<var::string>());
         break;
         case var_type::array:
-            new(m_value_ptr) array_type(other.as<var_type::array>());
+            new(m_value_ptr) array_type(other.as<var::array>());
         break;
         case var_type::map:
-            new(m_value_ptr) map_type(other.as<var_type::map>());
+            new(m_value_ptr) map_type(other.as<var::map>());
         break;
-        case var_type::color:
-            new(m_value_ptr) color_type(other.as<var_type::color>());
+        case var_type::undefined:
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -313,11 +319,13 @@ void var::reconstruct(const var_type& __type)
     case var_type::map:
         new(m_value_ptr) map_type();
     break;
-    case var_type::color:
-        as<var_type::color>().~color();
-    break;
+    // case var_type::color:
+    //     as<var::color>().~color();
+    // break;
     case var_type::null_type:
         break;
+    case var_type::undefined:
+    break;
     default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -331,7 +339,22 @@ var::~var()
     __delete();
 }
 
-var uva::core::var::array(array_type && __array)
+var uva::core::var::integer(integer_type &&__integer)
+{
+    return var(std::move(__integer));
+}
+
+var uva::core::var::real(real_type&& i)
+{
+    return var(std::move(i));
+}
+
+var uva::core::var::string(string_type &&__string)
+{
+    return var(std::move(__string));
+}
+
+var uva::core::var::array(array_type &&__array)
 {
     return var(std::move(__array));
 }
@@ -359,16 +382,18 @@ void var::destruct()
             case var_type::real:
             break;
             case var_type::string:
-                as<var_type::string>().~basic_string();
+                as<var::string>().~basic_string();
             break;
             case var_type::array:
-                as<var_type::array>().~vector();
+                as<var::array>().~vector();
             break;
             case var_type::map:
-                as<var_type::map>().~map();
+                as<var::map>().~map();
             break;
-            case var_type::color:
-                as<var_type::color>().~color();
+            // case var_type::color:
+            //     as<var::color>().~color();
+            // break;
+            case var_type::undefined:
             break;
             default:
                 VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -390,17 +415,17 @@ std::string var::to_s() const
             return "";
         break;
         case var_type::string:
-            return as<var_type::string>();
+            return as<var::string>();
         break;
         case var_type::integer:
-            return std::to_string(as<var_type::integer>());
+            return std::to_string(as<var::integer>());
         case var_type::real:
-            return std::format("{}", as<var_type::real>());
+            return std::format("{}", as<var::real>());
         case var_type::array: {
             std::string s = "{";
-            size_t reserved = as<var_type::array>().size()*64;
+            size_t reserved = as<var::array>().size()*64;
             s.reserve(reserved);
-            for(const auto& p : as<var_type::array>())
+            for(const auto& p : as<var::array>())
             {
                 s+=p.to_s();
                 s.push_back(',');
@@ -418,7 +443,7 @@ std::string var::to_s() const
             {
                 std::string s = "{";
 
-                for(const auto& p : as<var_type::map>())
+                for(const auto& p : as<var::map>())
                 {
                     s += " {";
 
@@ -478,11 +503,11 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close, bool d
         case var_type::string:
             {
                 std::string ret;
-                ret.reserve(as<var_type::string>().size()+15);
+                ret.reserve(as<var::string>().size()+15);
 
                 ret.push_back(quote);
                 
-                std::string_view sv = as<var_type::string>();
+                std::string_view sv = as<var::string>();
 
                 while(sv.size()) {
                     const char& c = sv.front();
@@ -532,12 +557,12 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close, bool d
             }
         break;
         case var_type::integer:
-            return std::to_string(as<var_type::integer>());
+            return std::to_string(as<var::integer>());
         case var_type::real:
-            return std::format("{}", as<var_type::real>());
+            return std::format("{}", as<var::real>());
         case var_type::array: {
             std::string s;
-            size_t reserved = as<var_type::array>().size()*64;
+            size_t reserved = as<var::array>().size()*64;
             s.reserve(reserved);
             
             if(array_open) {
@@ -545,7 +570,7 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close, bool d
                 s.push_back(' ');
             }
 
-            for(const auto& p : as<var_type::array>())
+            for(const auto& p : as<var::array>())
             {
                 s+=p.to_typed_s(array_open, array_close, double_quote);
                 s.push_back(',');
@@ -567,27 +592,27 @@ std::string uva::core::var::to_typed_s(char array_open, char array_close, bool d
         break;
         case var_type::map:
             {
-                std::string s = "{";
+                std::string map_buffer = "{";
 
-                for(const auto& p : as<var_type::map>())
+                for(const auto& p : as<var::map>())
                 {
-                    s += p.first.to_typed_s();
+                    map_buffer += p.first.to_typed_s();
 
-                    s.push_back(':');
-                    s.push_back(' ');
+                    map_buffer.push_back(':');
+                    map_buffer.push_back(' ');
 
-                    s += p.second.to_typed_s();
+                    map_buffer += p.second.to_typed_s();
 
-                    s.push_back(',');
-                    s.push_back(' ');
+                    map_buffer.push_back(',');
+                    map_buffer.push_back(' ');
                 }
 
-                s.pop_back();
-                s.pop_back();
+                map_buffer.pop_back();
+                map_buffer.pop_back();
 
-                s += " }";
+                map_buffer += " }";
 
-                return s;
+                return map_buffer;
             }
         break;
     }
@@ -604,7 +629,7 @@ int64_t var::to_i() const
         break;
         case var_type::string:
         {
-            std::string string = as<var_type::string>();
+            std::string string = as<var::string>();
             bool negative = false;
 
             if(string.starts_with('-')) {
@@ -614,7 +639,7 @@ int64_t var::to_i() const
 
             for(const char& c : string) {
                 if(!isdigit(c)) {
-                    throw std::runtime_error(std::format("invalid character '{}' in string \"{}\" while converting to integer", c, as<var_type::real>()));
+                    throw std::runtime_error(std::format("invalid character '{}' in string \"{}\" while converting to integer", c, as<var::real>()));
                 }
             }
 
@@ -627,10 +652,10 @@ int64_t var::to_i() const
         }
         break;
         case var_type::real:
-            return (int)as<var_type::real>();
+            return (int)as<var::real>();
         break;
         case var_type::integer:
-            return as<var_type::integer>();
+            return as<var::integer>();
         break;
     }
 
@@ -646,10 +671,10 @@ var::real_type var::to_f() const
             return 0;
         break;
         case var_type::real:
-            return as<var_type::real>();
+            return as<var::real>();
         break;
         case var_type::integer:
-            return (real_type)as<var_type::integer>();
+            return (real_type)as<var::integer>();
         break;
     }
 
@@ -658,17 +683,17 @@ var::real_type var::to_f() const
 
 var::operator int() const
 {
-    return (int)as<var_type::integer>();
+    return (int)as<var::integer>();
 }
 
 var::operator uint64_t() const
 {
-    return (uint64_t)as<var_type::integer>();
+    return (uint64_t)as<var::integer>();
 }
 
 var::operator int64_t() const
 {
-    return (int64_t)as<var_type::integer>();
+    return (int64_t)as<var::integer>();
 }
 
 var::operator std::string() const
@@ -679,7 +704,7 @@ var::operator std::string() const
         return "";
         break;
     case var_type::string:
-        return as<var_type::string>();
+        return as<var::string>();
     break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -695,16 +720,16 @@ var::operator bool() const
         return false;
         break;
     case var_type::integer:
-        return (bool)as<var_type::integer>();
+        return (bool)as<var::integer>();
     break;
     case var_type::string:
-        return as<var_type::string>().size();
+        return as<var::string>().size();
     break;
     case var_type::array:
-        return as<var_type::array>().size();
+        return as<var::array>().size();
     break;
     case var_type::map:
-        return as<var_type::map>().size();
+        return as<var::map>().size();
     break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -714,21 +739,21 @@ var::operator bool() const
 
 var::operator double() const
 {
-    return as<var_type::real>();
+    return as<var::real>();
 }
 
 var::operator std::vector<int>() const
 {
     if(type == var_type::array)
     {
-        const array_type& array = as<var_type::array>();
+        const array_type& array = as<var::array>();
 
         std::vector<int> __arr;
         __arr.reserve(array.size());
         
         for(int i = 0; i < array.size(); ++i)
         {
-            __arr.push_back((int)array[i].as<var_type::integer>());
+            __arr.push_back((int)array[i].as<var::integer>());
         }
 
         return __arr;
@@ -741,9 +766,9 @@ uva::core::var::operator uva::color() const
 {
     switch (type)
     {
-    case var_type::color:
-        return as<var_type::color>();
-        break;
+    // case var_type::color:
+    //     return as<var::color>();
+    //     break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -754,7 +779,7 @@ var& var::operator=(const uint64_t& i)
 {
     if(type == var_type::integer)
     {
-        as<var_type::integer>() = i;
+        as<var::integer>() = i;
     } else {
         reconstruct<integer_type>(i);
         type = var::var_type::integer;
@@ -767,7 +792,7 @@ var& var::operator=(const int64_t& i)
 {
     if(type == var_type::integer)
     {
-        as<var_type::integer>() = i;
+        as<var::integer>() = i;
     } else {
         reconstruct<integer_type>(i);
         type = var::var_type::integer;
@@ -783,7 +808,7 @@ var& var::operator=(const bool& b)
 
     if(type == __type)
     {
-        as<__type>() = i;
+        as<var::integer>() = i;
     } else {
         reconstruct<integer_type>(i);
         type =__type;
@@ -798,7 +823,7 @@ var &uva::core::var::operator=(const int &i)
 
     if(type == __type)
     {
-        as<__type>() = i;
+        as<var::integer>() = i;
     } else {
         reconstruct<integer_type>(i);
         type =__type;
@@ -813,7 +838,7 @@ var& var::operator=(const double& d)
 
     if(type == __type)
     {
-        as<__type>() = d;
+        as<var::real>() = d;
     } else {
         reconstruct<real_type>(d);
         type =__type;
@@ -826,7 +851,7 @@ var& var::operator=(const char* str)
 {
     if(type == var_type::string)
     {
-        as<var_type::string>() = str;
+        as<var::string>() = str;
     } else {
         reconstruct<string_type>(str);
         type = var::var_type::string;
@@ -841,7 +866,7 @@ var& var::operator=(const unsigned char* ustr)
 
     if(type == var_type::string)
     {
-        as<var_type::string>() = str;
+        as<var::string>() = str;
     } else {
         reconstruct<string_type>(str);
         type = var::var_type::string;
@@ -854,7 +879,7 @@ var& var::operator=(const std::string& str)
 {
     if(type == var_type::string)
     {
-        as<var_type::string>() = str;
+        as<var::string>() = str;
     } else {
         reconstruct<string_type>(str);
         type = var::var_type::string;
@@ -869,7 +894,7 @@ var& var::operator=(array_type&& __array)
 
     if(type == __type)
     {
-        as<__type>() = __array;
+        as<var::array>() = __array;
     } else {
         reconstruct<array_type>(__array);
         type = __type;
@@ -884,7 +909,7 @@ var &uva::core::var::operator=(const map_type & __map)
 
     if(type == __type)
     {
-        as<__type>() = __map;
+        as<var::map>() = __map;
     } else {
         reconstruct<map_type>(__map);
         type = __type;
@@ -955,21 +980,9 @@ var uva::core::var::operator+(const var &v) const
             switch(v.type)
             {
                 case var_type::integer:
-                    return as<var_type::integer>() + v.as<var_type::integer>();
+                    return as<var::integer>() + v.as<var::integer>();
                 break;
             };
-        break;
-        case var_type::real:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-        case var_type::array:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-        case var_type::map:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-        case var_type::color:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -982,10 +995,10 @@ var &uva::core::var::operator++()
     switch (type)
     {
         case var_type::integer:
-            as<var_type::integer>()++;
+            as<var::integer>()++;
         break;
         case var_type::real:
-            as<var_type::real>()++;
+            as<var::real>()++;
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1000,7 +1013,7 @@ var& var::operator+=(const std::string& s)
     switch (type)
     {
     case var::var_type::string:{
-        as<var_type::string>() += s;
+        as<var::string>() += s;
         return *this;
     }
         break;
@@ -1022,15 +1035,15 @@ bool var::operator==(const var& other) const
             return other.type == var_type::null_type;
         break;
         case var_type::string:
-            return other.type == var_type::string && typed_compare<var_type::string>(other); 
+            return other.type == var_type::string && typed_compare<var::string>(other); 
         break;
         case var_type::integer:
             if(other.type == var_type::integer) {
-                return typed_compare<var_type::integer>(other);
+                return typed_compare<var::integer>(other);
             } 
             else if(other.type == var_type::real)
             {
-                return (real_type)as<var_type::integer>() == other.as<var_type::real>();
+                return (real_type)as<var::integer>() == other.as<var::real>();
             }
             return false;
         break;
@@ -1053,22 +1066,22 @@ bool var::operator==(const var& other) const
 
 bool var::operator==(const long& l) const
 {
-    return as<var_type::integer>() == l;
+    return as<var::integer>() == l;
 }
 
 bool var::operator==(const double& d) const
 {
-    return d == as<var_type::real>();
+    return d == as<var::real>();
 }
 
 bool var::operator==(const std::string& s) const
 {
-    return as<var_type::string>() == s;
+    return as<var::string>() == s;
 }
 
 bool var::operator==(const bool& b) const
 {
-    return b == (bool)as<var_type::integer>();
+    return b == (bool)as<var::integer>();
 }
 
 bool var::operator==(const int& other) const
@@ -1082,10 +1095,10 @@ bool var::operator==(const int& other) const
             return false;
         break;
         case var_type::integer:
-            return as<var_type::integer>() == other;
+            return as<var::integer>() == other;
         break;
         case var_type::real:
-            return ((int)as<var_type::real>()) == other;
+            return ((int)as<var::real>()) == other;
         break;
     default:
         break;
@@ -1099,7 +1112,7 @@ bool uva::core::var::operator==(const array_type &other) const
     switch (type)
     {
         case var_type::array:{
-            array_type self = as<var_type::array>();
+            array_type self = as<var::array>();
 
             if(self.size() != other.size()) {
                 return false;
@@ -1127,7 +1140,7 @@ bool var::operator!=(const var& v) const
 
 bool var::operator!=(const double& d) const
 {
-    return as<var_type::real>() != d;
+    return as<var::real>() != d;
 }
 
 bool uva::core::var::operator!=(const char *s) const
@@ -1138,7 +1151,7 @@ bool uva::core::var::operator!=(const char *s) const
         return true;
         break;
     case var_type::string:
-        return as<var_type::string>() != s;
+        return as<var::string>() != s;
         break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1148,12 +1161,12 @@ bool uva::core::var::operator!=(const char *s) const
 
 bool uva::core::var::operator!=(const char8_t *s) const
 {
-    return as<var_type::string>() != (const char *)s;
+    return as<var::string>() != (const char *)s;
 }
 
 bool var::operator!=(const std::string& s) const
 {
-    return as<var_type::string>() != s;
+    return as<var::string>() != s;
 }
 
 bool var::operator!=(const var_type& __type) const
@@ -1163,17 +1176,17 @@ bool var::operator!=(const var_type& __type) const
 
 bool var::operator<(const int& i) const
 {
-    return as<var_type::integer>() < i;
+    return as<var::integer>() < i;
 }
 
 bool var::operator<(const time_t& i) const
 {
-    return as<var_type::integer>() < i;
+    return as<var::integer>() < i;
 }
 
 bool var::operator<(const double& d) const
 {
-    return as<var_type::real>() < d;
+    return as<var::real>() < d;
 }
 
 bool var::operator<(const var& other) const
@@ -1185,11 +1198,11 @@ bool var::operator<(const var& other) const
     switch(type)
     {
         case var_type::string:
-            return as<var_type::string>() < other.as<var_type::string>();
+            return as<var::string>() < other.as<var::string>();
         case var_type::real:
-            return as<var_type::real>() < other.as<var_type::real>();
+            return as<var::real>() < other.as<var::real>();
         case var_type::integer:
-            return as<var_type::integer>() < other.as<var_type::integer>();
+            return as<var::integer>() < other.as<var::integer>();
     }
 
     throw std::runtime_error(std::format("cannot compare (var_type){} to (var_type){}", (size_t)type, (size_t)other.type));
@@ -1204,10 +1217,10 @@ var uva::core::var::operator/(const var &other) const
             switch (other.type)
             {
                 case var_type::integer:
-                    return as<var_type::integer>() / other.as<var_type::integer>();
+                    return as<var::integer>() / other.as<var::integer>();
                 break;
                 case var_type::real:
-                    return as<var_type::integer>() / other.as<var_type::real>();
+                    return as<var::integer>() / other.as<var::real>();
                 break;
                 default:
                     VAR_THROW_CANT_CAST_TO_THIS_TYPE(other.type);
@@ -1218,10 +1231,10 @@ var uva::core::var::operator/(const var &other) const
             switch (other.type)
             {
                 case var_type::integer:
-                    return as<var_type::real>() / other.as<var_type::integer>();
+                    return as<var::real>() / other.as<var::integer>();
                 break;
                 case var_type::real:
-                    return as<var_type::real>() / other.as<var_type::real>();
+                    return as<var::real>() / other.as<var::real>();
                 break;
                 default:
                     VAR_THROW_CANT_CAST_TO_THIS_TYPE(other.type);
@@ -1236,7 +1249,7 @@ var uva::core::var::operator/(const var &other) const
 
 const var& var::operator[](const size_t& i) const
 {
-    auto& array = as<var_type::array>();
+    auto& array = as<var::array>();
     return array[i];
 }
 
@@ -1245,10 +1258,10 @@ var& var::operator[](const size_t& i)
     switch(type)
     {
         case var_type::map:{
-            return as<var_type::map>()[i];
+            return as<var::map>()[i];
         }
         case var_type::array:{
-            return as<var_type::array>()[i];
+            return as<var::array>()[i];
         }
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1261,7 +1274,7 @@ const var& var::operator[](const int& __n) const
     switch(type)
     {
         case var_type::map:{
-            const map_type& map = as<var_type::map>();
+            const map_type& map = as<var::map>();
 
             auto it = map.find(__n);
             if(it == map.end()) {
@@ -1271,7 +1284,7 @@ const var& var::operator[](const int& __n) const
             return it->second;
         }
         case var_type::array:{
-            return as<var_type::array>()[__n];
+            return as<var::array>()[__n];
         }
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1284,10 +1297,10 @@ var& var::operator[](const int& __n)
     switch(type)
     {
         case var_type::map:{
-            return as<var_type::map>()[__n];
+            return as<var::map>()[__n];
         }
         case var_type::array:{
-            return as<var_type::array>()[__n];
+            return as<var::array>()[__n];
         }
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1300,7 +1313,7 @@ const var &var::operator[](const var &__k) const
     switch(type)
     {
         case var_type::map:{
-            const map_type& map = as<var_type::map>();
+            const map_type& map = as<var::map>();
 
             auto it = map.find(__k);
             if(it == map.end()) {
@@ -1321,7 +1334,7 @@ var& var::operator[](const var& __k)
     switch(type)
     {
         case var_type::map:
-            return as<var_type::map>()[__k];
+            return as<var::map>()[__k];
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1349,7 +1362,7 @@ var uva::core::var::key(const var &__v)
     switch(type)
     {
         case var_type::map: {
-            for(const auto & pair : as<var_type::map>())
+            for(const auto & pair : as<var::map>())
             {
                 if(pair.second == __v) {
                     return pair.first;
@@ -1365,15 +1378,21 @@ var uva::core::var::key(const var &__v)
     return null;
 }
 
-void uva::core::var::append_to(std::string &__str) const
+void uva::core::var::append_to(std::string &__str, bool typed) const
 {
     switch (type)
     {
     case var::var_type::string:
-        __str.append(as<var_type::string>());
+        __str.push_back('\'');
+        __str.append(as<var::string>());
+        __str.push_back('\'');
     break;
     default:
-        __str.append(to_s());
+        if(typed) {
+            __str.append(to_typed_s());
+        } else {
+            __str.append(to_s());
+        }
         break;
     }
 }
@@ -1398,7 +1417,7 @@ var uva::core::var::select(bool (*selector)(const var&))
     switch (type)
     {
     case var::var_type::array:
-        return select_array(selector, as<var_type::array>());
+        return select_array(selector, as<var::array>());
     break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1411,7 +1430,7 @@ var::array_const_iterator var::begin() const
     switch (type)
     {
     case var::var_type::array:
-            return as<var_type::array>().begin();
+            return as<var::array>().begin();
         break;
     default:
         throw std::runtime_error(std::format("undefined method 'push' for (var_type){}", (size_t)type));
@@ -1421,17 +1440,17 @@ var::array_const_iterator var::begin() const
 
 var::array_iterator var::begin()
 {
-    return as<var_type::array>().begin();
+    return as<var::array>().begin();
 }
 
 var::array_const_iterator var::end() const
 {
-    return as<var_type::array>().end();
+    return as<var::array>().end();
 }
 
 var::array_iterator var::end()
 {
-    return as<var_type::array>().end();
+    return as<var::array>().end();
 }
 
 void var::push_back(const var& v)
@@ -1439,7 +1458,7 @@ void var::push_back(const var& v)
     switch (type)
     {
     case var::var_type::array:
-        as<var_type::array>().push_back(v);
+        as<var::array>().push_back(v);
         break;
     default:
         throw std::runtime_error(std::format("undefined method 'push' for (var_type){}", (size_t)type));
@@ -1452,7 +1471,7 @@ void var::push_back(var&& v)
     switch (type)
     {
     case var::var_type::array:
-        as<var_type::array>().push_back(std::forward<var&&>(v));
+        as<var::array>().push_back(std::forward<var&&>(v));
         break;
     default:
         throw std::runtime_error(std::format("undefined method 'push' for (var_type){}", (size_t)type));
@@ -1462,12 +1481,12 @@ void var::push_back(var&& v)
 
 var::array_iterator var::insert(var::array_const_iterator __position, var&& __x)
 {
-    return as<var_type::array>().insert(__position, std::move(__x));
+    return as<var::array>().insert(__position, std::move(__x));
 }
 
 var::array_iterator var::insert(var::array_iterator __position, var&& __x)
 {
-    return as<var_type::array>().insert(__position, std::move(__x));
+    return as<var::array>().insert(__position, std::move(__x));
 }
 
 void var::clear()
@@ -1475,13 +1494,13 @@ void var::clear()
     switch(type)
     {
         case var_type::string:
-            as<var_type::string>().clear();
+            as<var::string>().clear();
         break;
         case var_type::array:
-            as<var_type::array>().clear();
+            as<var::array>().clear();
         break;
         case var_type::map:
-            as<var_type::map>().clear();
+            as<var::map>().clear();
         break;
         default:
             throw std::runtime_error(std::format("undefined method 'clear' for {}", type));
@@ -1494,10 +1513,10 @@ void var::reserve(size_t __n)
     switch(type)
     {
         case var_type::string:
-            as<var_type::string>().reserve(__n);
+            as<var::string>().reserve(__n);
         break;
         case var_type::array:
-            as<var_type::array>().reserve(__n);
+            as<var::array>().reserve(__n);
         break;
         default:
             throw std::runtime_error(std::format("undefined method 'reserve' for {}", type));
@@ -1510,7 +1529,7 @@ bool var::binary_search(const var& other) const
     switch(type)
     {
         case var_type::array:
-            return std::binary_search(as<var_type::array>().begin(), as<var_type::array>().end(), other);
+            return std::binary_search(as<var::array>().begin(), as<var::array>().end(), other);
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1527,14 +1546,14 @@ var::array_iterator var::insert_sorted(const var& item, bool distinct)
 
             if(!distinct || it == end() || *it != item)
             {
-                return as<var_type::array>().insert
+                return as<var::array>().insert
                 ( 
                     it,
                     item 
                 );
             }
 
-            return as<var_type::array>().end();
+            return as<var::array>().end();
         }
         break;
         default:
@@ -1548,13 +1567,13 @@ bool var::empty() const
     switch(type)
     {
         case var_type::string:
-            return as<var_type::string>().empty();
+            return as<var::string>().empty();
         break;
         case var_type::array:
-            return as<var_type::array>().empty();
+            return as<var::array>().empty();
         break;
         case var_type::map:
-            return as<var_type::map>().empty();
+            return as<var::map>().empty();
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1568,7 +1587,7 @@ var &uva::core::var::back()
     switch(type)
     {
         case var_type::array:
-            return as<var_type::array>().back();
+            return as<var::array>().back();
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1621,7 +1640,7 @@ var::array_iterator var::upper_bound(const uva::core::var& __val)
 
 void var::each_array(std::function<void(const var& value)> __f) const
 {
-    for(const auto& v : as<var_type::array>())
+    for(const auto& v : as<var::array>())
     {
         __f(v);
     }
@@ -1629,7 +1648,7 @@ void var::each_array(std::function<void(const var& value)> __f) const
 
 void var::each_array(std::function<void(var& value)> __f)
 {
-    for(auto& v : as<var_type::array>())
+    for(auto& v : as<var::array>())
     {
         __f(v);
     }
@@ -1637,7 +1656,7 @@ void var::each_array(std::function<void(var& value)> __f)
 
 void var::each_string(std::function<void(const var& value)> __f) const
 {
-    for(const auto& c : as<var_type::string>())
+    for(const auto& c : as<var::string>())
     {
         __f(c);
     }
@@ -1646,7 +1665,7 @@ void var::each_string(std::function<void(const var& value)> __f) const
 void var::each_string(std::function<void(var& value)> __f)
 {
     throw std::logic_error("not implemented");
-    for(auto& c : as<var_type::string>())
+    for(auto& c : as<var::string>())
     {
         //__f(c);
     }
@@ -1689,7 +1708,7 @@ void var::each(void (*__f)(const char&)) const
     switch(type)
     {
         case var_type::string:{
-            const std::string& string = as<var_type::string>();
+            const std::string& string = as<var::string>();
 
             for(size_t i = 0; i < string.size(); ++i) {
                 __f(string[i]);
@@ -1702,9 +1721,33 @@ void var::each(void (*__f)(const char&)) const
     }
 }
 
+bool uva::core::var::includes(const var & value) const
+{
+    switch(type)
+    {
+        case var_type::array:{
+            const array_type& array = as<var::array>();
+
+            for(size_t i = 0; i < array.size(); ++i) {
+                if(array[i] == value) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+
+    return false;
+}
+
 var var::join_array(const char& __separator) const
 { 
-    return uva::string::join(as<var_type::array>(), __separator);
+    return uva::string::join(as<var::array>(), __separator);
 }
 var var::join_map(const char& __separator) const
 {
@@ -1734,8 +1777,8 @@ var var::fetch(const var& __value, const var& __default) const
     {
         case var_type::map:
         {
-            auto it = as<var_type::map>().find(__value);
-            if(it != as<var_type::map>().end())
+            auto it = as<var::map>().find(__value);
+            if(it != as<var::map>().end())
             {
                 return it->second;
             }
@@ -1745,7 +1788,7 @@ var var::fetch(const var& __value, const var& __default) const
         }
         case var_type::array:
         {
-            auto& array = as<var_type::array>();
+            auto& array = as<var::array>();
             auto it = std::find(array.begin(), array.end(), __value);
             if(it != array.end())
             {
@@ -1766,7 +1809,7 @@ size_t var::size() const
     switch(type)
     {
         case var_type::string:
-            return as<var_type::string>().size();
+            return as<var::string>().size();
         break;
         case var_type::real:
             return sizeof(double);
@@ -1774,11 +1817,11 @@ size_t var::size() const
         case var_type::integer:
             return sizeof(int64_t);
         case var_type::array:
-            return as<var_type::array>().size();
+            return as<var::array>().size();
         break;
         default:
         case var_type::map:
-            return as<var_type::map>().size();
+            return as<var::map>().size();
         break;
             throw std::runtime_error(std::format("undefined method 'size' for {}", type));
         break;
@@ -1790,7 +1833,7 @@ var var::strftime(std::string_view __format)
     switch(type)
     {
         case var_type::integer: {
-            time_t t = as<var_type::integer>();
+            time_t t = as<var::integer>();
 
             std::tm* tm = gmtime(&t);
             if(!std::strftime(s_buffer, 100, __format.data(), tm)) {
@@ -1813,7 +1856,7 @@ var var::capitalize()
         throw std::runtime_error(std::format("undefined method 'capitalize' for {}", type));
     }
 
-    return uva::string::capitalize(as<var_type::string>());
+    return uva::string::capitalize(as<var::string>());
 }
 
 var var::to_downcase() const
@@ -1823,7 +1866,7 @@ var var::to_downcase() const
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
     }
 
-    return uva::string::tolower(as<var_type::string>());
+    return uva::string::tolower(as<var::string>());
 }
 
 var var::pluralize()
@@ -1833,7 +1876,7 @@ var var::pluralize()
         throw std::runtime_error(std::format("undefined method 'pluralize' for {}", type));
     }
 
-    return uva::string::pluralize(as<var_type::string>());
+    return uva::string::pluralize(as<var::string>());
 }
 
 bool uva::core::var::starts_with(std::string_view sv) const
@@ -1841,7 +1884,7 @@ bool uva::core::var::starts_with(std::string_view sv) const
     switch(type)
     {
         case var_type::string:
-            return as<var_type::string>().starts_with(sv);
+            return as<var::string>().starts_with(sv);
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1854,7 +1897,7 @@ bool uva::core::var::ends_with(std::string_view sv) const
     switch(type)
     {
         case var_type::string:
-            return as<var_type::string>().ends_with(sv);
+            return as<var::string>().ends_with(sv);
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1870,7 +1913,7 @@ bool uva::core::var::ends_with(const var& sufix) const
             switch(sufix.type)
             {
                 case var_type::array: {
-                    const array_type& array = sufix.as<var_type::array>();
+                    const array_type& array = sufix.as<var::array>();
 
                     for(size_t i = 0; i < array.size(); ++i) {
                         if(ends_with(array[i])) {
@@ -1882,7 +1925,7 @@ bool uva::core::var::ends_with(const var& sufix) const
                 }
                 break;
                 case var_type::string:
-                    return as<var_type::string>().ends_with(sufix.as<var_type::string>());
+                    return as<var::string>().ends_with(sufix.as<var::string>());
                 break;
             }
         break;

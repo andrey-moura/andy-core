@@ -52,10 +52,10 @@ namespace uva
         public:
             enum class var_type
             {
-                null_type,
+                undefined = -1,
+                null_type = 0,
                 integer,
                 real,
-                color,
                 string,
                 array,
                 map,
@@ -87,7 +87,8 @@ namespace uva
             var(const char* str);
             var(const char8_t* __str);
             var(const char* str, size_t i);
-            var(const std::string& _str);
+            var(const string_type& _str);
+            var(string_type&& _str);
 
             //array
 
@@ -114,18 +115,33 @@ namespace uva
             ~var();
 
             //initializers
+            
+            /// @brief Creates a var from an integer-like initialization syntax
+            /// @param __integer Anything which can be used to create an integer
+            /// @return An var equivalent to an integer created with the same arguments
+            static var integer(integer_type&& __integer);
+
+            /// @brief Creates a var from a real-like initialization syntax
+            /// @param __real Anything which can be used to create a real
+            /// @return An var equivalent to a real created with the same arguments
+            static var real(real_type&& i);
+
+            /// @brief Creates a var from a string-like initialization syntax
+            /// @param __string Anything which can be used to create a string
+            /// @return An var equivalent to a string created with the same arguments
+            static var string(string_type&& _string = string_type());
 
             /// @brief Creates a var from an array-like initialization syntax
             /// @param __array Anything which can be used to create an array
             /// @return An var equivalent to an array created with the same arguments
             static var array(array_type&& __array = array_type());
+
             /// @brief Creates a var from a map-like initialization syntax
             /// @param __map Anything which can be used to create a map
             /// @return An var equivalent to a map created with the same arguments
             static var map(map_type&& __map = map_type());
         public:
             var_type type = var_type::null_type;
-        public:
             void* m_value_ptr = nullptr;
             //for debugging
 #if __UVA_DEBUG_LEVEL__ >= 1
@@ -170,89 +186,95 @@ namespace uva
                 sizeof(array_type),
                 sizeof(map_type)
             });
-        public:
+        protected:
             template<typename type>
             type& cast_to() const
             {
                 return *((type*)m_value_ptr);
             }
-            template<var_type __type>
-            const auto& as() const
-            {
-                if constexpr(__type == var_type::null_type)
-                {
-                    VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(var_type::null_type);
-                }
-                if constexpr(__type == var_type::string)
-                {
-                    return cast_to<std::string>();
-                }
-                if constexpr(__type == var_type::integer)
-                {
-                    return cast_to<int64_t>();
-                }
-                if constexpr(__type == var_type::real)
-                {
-                    return cast_to<double>();
-                }
-                if constexpr(__type == var_type::array)
-                {
-                    return cast_to<array_type>();
-                }
-                if constexpr(__type == var_type::map)
-                {
-                    return cast_to<map_type>();
-                }
-                if constexpr(__type == var_type::color)
-                {
-                    return cast_to<color_type>();
-                }
-            }
-            template<var_type __type>
-            auto& as()
-            {
-                if constexpr(__type == var_type::null_type)
-                {
-                    VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(var_type::null_type);
-                }
-                if constexpr(__type == var_type::string)
-                {
-                    return cast_to<std::string>();
-                }
-                if constexpr(__type == var_type::integer)
-                {
-                    return cast_to<int64_t>();
-                }
-                if constexpr(__type == var_type::real)
-                {
-                    return cast_to<double>();
-                }
-                if constexpr(__type == var_type::array)
-                {
-                    return cast_to<array_type>();
-                }
-                if constexpr(__type == var_type::map)
-                {
-                    return cast_to<map_type>();
-                }
-                if constexpr(__type == var_type::color)
-                {
-                    return cast_to<color_type>();
-                }
-            }
+        public:
             template<auto __type>
-            constexpr bool is_a()
+            const auto& as() const
             {
                 //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
                 //it throws compilation error. The function_is_same was created to allow this to work.
 
-                if constexpr (uva::string::function_is_same<__type, var::array>()) {
-                    return type == var_type::array;
+                if constexpr (uva::string::function_is_same<__type, var::integer>()) {
+
+                    return cast_to<integer_type>();
+
+                }
+                else if constexpr (uva::string::function_is_same<__type, var::real>()) {
+
+                    return cast_to<real_type>();
+
+                }
+                else if constexpr (uva::string::function_is_same<__type, var::string>()) {
+
+                    return cast_to<string_type>();
+
+                }
+                else if constexpr (uva::string::function_is_same<__type, var::array>()) {
+
+                    return cast_to<array_type>();
+
+                }
+                else if constexpr (uva::string::function_is_same<__type, var::map>()) {
+
+                    return cast_to<map_type>();
+
+                } else {
+                    return *this;
                 }
 
-                if constexpr (uva::string::function_is_same<__type, var::map>()) {
-                    return type == var_type::map;
+                VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+
+            }
+            private:
+            template<typename T>
+            T& cast_to_non_const(const T& t)
+            {
+                return const_cast<T&>(t);
+            }
+            public:
+            template<auto __type>
+            auto& as()
+            {
+                return cast_to_non_const(const_cast<const var*>(this)->as<__type>());
+            }
+            template<auto __type>
+            bool is_a() const
+            {
+                //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
+                //it throws compilation error. The function_is_same was created to allow this to work.
+
+                if constexpr (uva::string::function_is_same<__type, var::integer>()) {
+
+                    return type == var_type::integer;
+
                 }
+                else if constexpr (uva::string::function_is_same<__type, var::real>()) {
+
+                    return type == var_type::real;
+
+                }
+                else if constexpr (uva::string::function_is_same<__type, var::string>()) {
+
+                    return type == var_type::string;
+
+                }
+                else if constexpr (uva::string::function_is_same<__type, var::array>()) {
+
+                    return type == var_type::array;
+
+                }
+                else if constexpr (uva::string::function_is_same<__type, var::map>()) {
+
+                    return type == var_type::map;
+
+                }
+
+                VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 
                 return false;
             }
@@ -294,7 +316,7 @@ namespace uva
 
             var& operator+=(const std::string& s);
 
-            template<var_type __type>
+            template<auto __type>
             bool typed_compare(const var& other) const
             {
                 return as<__type>() == other.as<__type>();
@@ -316,7 +338,7 @@ namespace uva
                         return false;
                     break;
                     case var_type::string:
-                        return as<var_type::string>() == other;
+                        return as<var::string>() == other;
                     break;
                     default:
                         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -361,7 +383,8 @@ namespace uva
             }
             friend bool operator<(const double& d, const var& __other)
             {
-                return d < __other.as<var_type::real>();
+                //return d < __other.as<var::real>();
+                return false;
             }
             friend std::filesystem::path operator/(const std::filesystem::path& path, const var& __other)
             {
@@ -642,7 +665,7 @@ namespace uva
                 switch (type)
                 {
                 case var::var_type::string:
-                    return std::vformat(as<var_type::string>(), std::make_format_args(__args...));
+                    return std::vformat(as<var::string>(), std::make_format_args(__args...));
                 break;
                 default:
                     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -760,6 +783,9 @@ var          operator ""_percent(unsigned long long d);
             case var::var_type::map:
                 return std::format_to(ctx.out(), "{}", "map");
             break;
+            case var::var_type::undefined:
+                return std::format_to(ctx.out(), "{}", "undefined");
+            break;
             default:
                 throw std::runtime_error(std::format("invalid value of var::var_type: {}", (int)type));
             break;
@@ -798,6 +824,9 @@ var          operator ""_percent(unsigned long long d);
                 break;
                 case var::var_type::color:
                     return std::format_to(ctx.out(), "{}", "color");
+                break;
+                case var::var_type::undefined:
+                    return std::format_to(ctx.out(), "{}", "undefined");
                 break;
                 default:
                     throw std::runtime_error(std::format("invalid value of var::var_type: {}", (int)type));

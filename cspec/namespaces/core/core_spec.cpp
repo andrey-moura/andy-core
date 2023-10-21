@@ -136,7 +136,7 @@ cspec_describe("uva::core",
                 it("as string should have same value as copied string", [](){
                     const char* s = faker::lorem::cword();
                     var v(s);
-                    expect(v.as<var::var_type::string>()).to eq(s);
+                    expect(v.as<var::string>()).to eq(s);
                 })
             })
             context("with const char8_t* copy constructor", {
@@ -170,7 +170,7 @@ cspec_describe("uva::core",
                 it("as string should have same value as copied string", [](){
                     std::string_view s = faker::lorem::word();
                     var v(s.data(), s.size());
-                    expect(v.as<var::var_type::string>()).to eq(s);
+                    expect(v.as<var::string>()).to eq(s);
                 })
             })
             context("with const std::string& copy constructor", {
@@ -187,7 +187,7 @@ cspec_describe("uva::core",
                 it("as string should have same value as copied string", [](){
                     std::string s = faker::lorem::word();
                     var v(s);
-                    expect(v.as<var::var_type::string>()).to eq(s);
+                    expect(v.as<var::string>()).to eq(s);
                 })
             })
             context("with const std::vector& copy constructor", {
@@ -204,7 +204,7 @@ cspec_describe("uva::core",
                 it("as string should have same value as copied string", [](){
                     std::vector<var> a = faker::array::random<var>(5);
                     var v(a);
-                    expect(v.as<var::var_type::array>()).to eq(a);
+                    expect(v.as<var::array>()).to eq(a);
                 })
             })
             // context("with const std::string& copy constructor", {
@@ -221,7 +221,7 @@ cspec_describe("uva::core",
             //     it("as string should have same value as copied string", [](){
             //         std::string s = faker::lorem::word();
             //         var v(s);
-            //         expect(v.as<var::var_type::string>()).to eq(s);
+            //         expect(v.as<var::string>()).to eq(s);
             //     })
             // })
             // context("assigning var_type::", {
