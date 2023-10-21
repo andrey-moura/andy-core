@@ -278,6 +278,11 @@ namespace uva
 
                 return false;
             }
+            template<auto __type>
+            auto&& move()
+            {
+                return std::move(this->as<__type>());
+            }
         public:
             bool is_null() const;
             std::string to_s() const;
