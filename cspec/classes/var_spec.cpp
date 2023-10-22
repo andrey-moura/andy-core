@@ -8,7 +8,7 @@
 
 // void insert_data_into_var()
 // {
-//     var arr = empty_array;
+//     var arr = var::array();
 
 //     for(size_t i = i; i < TEST_REPETITIONS; ++i)
 //     {

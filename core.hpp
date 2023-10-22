@@ -59,6 +59,7 @@ namespace uva
                 string,
                 array,
                 map,
+                color,
                 max
             };
             //Function declarations MUST match this order:
@@ -194,42 +195,7 @@ namespace uva
             }
         public:
             template<auto __type>
-            const auto& as() const
-            {
-                //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
-                //it throws compilation error. The function_is_same was created to allow this to work.
-
-                if constexpr (uva::string::function_is_same<__type, var::integer>()) {
-
-                    return cast_to<integer_type>();
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::real>()) {
-
-                    return cast_to<real_type>();
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::string>()) {
-
-                    return cast_to<string_type>();
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::array>()) {
-
-                    return cast_to<array_type>();
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::map>()) {
-
-                    return cast_to<map_type>();
-
-                } else {
-                    return *this;
-                }
-
-                VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-
-            }
+            const auto& as() const;
             private:
             template<typename T>
             T& cast_to_non_const(const T& t)
@@ -243,41 +209,7 @@ namespace uva
                 return cast_to_non_const(const_cast<const var*>(this)->as<__type>());
             }
             template<auto __type>
-            bool is_a() const
-            {
-                //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
-                //it throws compilation error. The function_is_same was created to allow this to work.
-
-                if constexpr (uva::string::function_is_same<__type, var::integer>()) {
-
-                    return type == var_type::integer;
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::real>()) {
-
-                    return type == var_type::real;
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::string>()) {
-
-                    return type == var_type::string;
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::array>()) {
-
-                    return type == var_type::array;
-
-                }
-                else if constexpr (uva::string::function_is_same<__type, var::map>()) {
-
-                    return type == var_type::map;
-
-                }
-
-                VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-
-                return false;
-            }
+            bool is_a() const;
             template<auto __type>
             auto&& move()
             {
@@ -335,23 +267,7 @@ namespace uva
             bool operator==(const int& other) const;
             bool operator==(const array_type& other) const;
             template<size_t N>
-            bool operator==(const char(&other)[N]) const
-            {
-                switch(type)
-                {
-                    case var_type::null_type:
-                        return false;
-                    break;
-                    case var_type::string:
-                        return as<var::string>() == other;
-                    break;
-                    default:
-                        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-                    break;
-                }
-
-                return false;
-            }
+            bool operator==(const char(&other)[N]) const;
             bool operator!=(const var& v) const;
             bool operator!=(const double& d) const;
             bool operator!=(const char* s) const;
@@ -595,41 +511,9 @@ namespace uva
             void each_string(std::function<void(uva::core::var& value)> __f);
             public:
                 template<typename T>
-                void for_each(void(*function)(T&))
-                {   
-					switch(type)
-					{
-						case var_type::array:
-						{
-							auto& array = as<var::array>();
-                            for(size_t i = 0; i < array.size(); ++i) {
-							    function(array[i]);
-                            }
-						}
-                        break;
-						default:
-							VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-						break;
-					}
-                }
+                void for_each(void(*function)(T&));
                 template<typename T>
-                void for_each(void(*function)(T&, void*), void* data = nullptr)
-                {   
-					switch(type)
-					{
-						case var_type::array:
-						{
-							auto& array = as<var::array>();
-                            for(size_t i = 0; i < array.size(); ++i) {
-							    function(array[i], data);
-                            }
-						}
-                        break;
-						default:
-							VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-						break;
-					}
-                }
+                void for_each(void(*function)(T&, void*), void* data = nullptr);
 //END ARRAY FUNCTIONS
                 bool includes(const var& value) const;
 //ARRAY/MAP FUNCTIONS
@@ -701,18 +585,7 @@ namespace uva
              *  @return The format in self with @a __args formating applied.
              */
             template<class... Args>
-            var format(Args... __args)
-            {
-                switch (type)
-                {
-                case var::var_type::string:
-                    return std::vformat(as<var::string>(), std::make_format_args(__args...));
-                break;
-                default:
-                    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-                break;
-                }
-            }
+            var format(Args... __args);
 
             /// @brief Checks if string has a prefix
             /// @param sv The string which this should starts with
@@ -877,7 +750,152 @@ var          operator ""_percent(unsigned long long d);
     };
 #endif
 
+//methods that call std::format on var_type must be defined after the formatter. As templates need to be in header, define them here.
+//Note: VAR_THROW_UNDEFINED_METHOD_FOR_TYPE does uses var_type formatter.
+template<auto __type>
+const auto& uva::core::var::as() const
+{
+    //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
+    //it throws compilation error. The function_is_same was created to allow this to work.
+
+    if constexpr (uva::string::function_is_same<__type, var::integer>()) {
+
+        return cast_to<integer_type>();
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::real>()) {
+
+        return cast_to<real_type>();
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::string>()) {
+
+        return cast_to<string_type>();
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::array>()) {
+
+        return cast_to<array_type>();
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::map>()) {
+
+        return cast_to<map_type>();
+
+    } else {
+        return *this;
+    }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+}
+
+template<auto __type>
+bool uva::core::var::is_a() const
+{
+    //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
+    //it throws compilation error. The function_is_same was created to allow this to work.
+
+    if constexpr (uva::string::function_is_same<__type, var::integer>()) {
+
+        return type == var_type::integer;
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::real>()) {
+
+        return type == var_type::real;
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::string>()) {
+
+        return type == var_type::string;
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::array>()) {
+
+        return type == var_type::array;
+
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::map>()) {
+
+        return type == var_type::map;
+
+    }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+
+    return false;
+}
+
+template<class... Args>
+var uva::core::var::format(Args... __args)
+{
+    switch (type)
+    {
+    case var::var_type::string:
+        return std::vformat(as<var::string>(), std::make_format_args(__args...));
+    break;
+    default:
+        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+    break;
+    }
+}
+
+template<size_t N>
+bool uva::core::var::operator==(const char(&other)[N]) const
+{
+    switch(type)
+    {
+        case var_type::null_type:
+            return false;
+        break;
+        case var_type::string:
+            return as<var::string>() == other;
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+
+    return false;
+}
+
+template<typename T>
+void uva::core::var::for_each(void(*function)(T&))
+{   
+    switch(type)
+    {
+        case var_type::array:
+        {
+            auto& array = as<var::array>();
+            for(size_t i = 0; i < array.size(); ++i) {
+                function(array[i]);
+            }
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+template<typename T>
+void uva::core::var::for_each(void(*function)(T&, void*), void* data)
+{   
+    switch(type)
+    {
+        case var_type::array:
+        {
+            auto& array = as<var::array>();
+            for(size_t i = 0; i < array.size(); ++i) {
+                function(array[i], data);
+            }
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
 #define var var
 #define null var::var_type::null_type
-#define empty_map var::var_type::map
-#define empty_array var::var_type::array

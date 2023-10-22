@@ -1990,7 +1990,7 @@ var find_best_type(std::string str)
 var uva::core::parse_argument_list(const std::string &argument_list)
 {
     std::string_view sv = argument_list;
-    var arguments = empty_array;
+    var arguments = var::array();
 
     std::string extracted_var;
     char is_inside_quotes = '\0';
