@@ -1819,10 +1819,10 @@ size_t var::size() const
         case var_type::array:
             return as<var::array>().size();
         break;
-        default:
         case var_type::map:
             return as<var::map>().size();
         break;
+        default:
             throw std::runtime_error(std::format("undefined method 'size' for {}", type));
         break;
     }
