@@ -1,14 +1,32 @@
 #pragma once
 
+/* C includes */
+#include <time.h>
+#include <stdint.h>
+
+/* C++ includes */
 #include <string>
 #include <vector>
 #include <functional>
-#include <format.hpp>
-#include <time.h>
+#include <initializer_list>
 #include <filesystem>
+#include <map>
+
+/* uva includes */
+#if __has_include(<uva/format.hpp>)
+#   include <uva/format.hpp>
+#endif
+
+
+#if __has_include(<string.hpp>)
+#   define __UVA_HAS_STRING__
+#endif
+
+#ifdef __UVA_HAS_STRING__
+#   include <string.hpp>
+#endif
 
 #include <color.hpp>
-#include <string.hpp>
 
 #include <uva.hpp>
 
