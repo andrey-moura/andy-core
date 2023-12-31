@@ -18,15 +18,15 @@
 #endif
 
 
-#if __has_include(<string.hpp>)
+#if __has_include(<uva/string.hpp>)
 #   define __UVA_HAS_STRING__
 #endif
 
 #ifdef __UVA_HAS_STRING__
-#   include <string.hpp>
+#   include <uva/string.hpp>
 #endif
 
-#include <color.hpp>
+#include <uva/color.hpp>
 
 #include <uva.hpp>
 
