@@ -1,4 +1,5 @@
 #include <uva/core.hpp>
+#include "core.hpp"
 
 static char s_buffer[100];
 
