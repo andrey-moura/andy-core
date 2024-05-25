@@ -11,6 +11,7 @@
 #include <initializer_list>
 #include <filesystem>
 #include <map>
+#include <unordered_map>
 
 /* uva includes */
 #if __has_include(<uva/format.hpp>)
@@ -66,6 +67,10 @@ namespace uva
             using map_iterator = map_type::iterator;
             using map_const_iterator = map_type::const_iterator;
 
+            using dictionary_type = std::unordered_map<std::string, var>;
+            using dictionary_iterator = dictionary_type::iterator;
+            using dictionary_const_iterator = dictionary_type::const_iterator;
+
             using color_type = color;
         public:
             enum class var_type
@@ -77,6 +82,7 @@ namespace uva
                 string,
                 array,
                 map,
+                dictionary,
                 color,
                 max
             };
@@ -123,6 +129,11 @@ namespace uva
             var(const std::map<std::string, std::string>& __map);
             var(const std::map<std::string, var>& __map);
 
+            //dictionary
+
+            var(dictionary_type&& __dictionary);
+            var(const dictionary_type& __dictionary);
+
             //var
 
             var(const var& other);
@@ -159,6 +170,11 @@ namespace uva
             /// @param __map Anything which can be used to create a map
             /// @return An var equivalent to a map created with the same arguments
             static var map(map_type&& __map = map_type());
+
+            /// @brief Creates a var from a dictionary-like initialization syntax
+            /// @param __dictionary Anything which can be used to create a dictionary
+            /// @return An var equivalent to a dictionary created with the same arguments
+            static var dictionary(dictionary_type&& __dictionary = dictionary_type());
         public:
             var_type type = var_type::null_type;
             void* m_value_ptr = nullptr;
@@ -169,6 +185,7 @@ namespace uva
             string_type* m_string_ptr = nullptr;
             array_type* m_array_ptr = nullptr;
             map_type* m_map_ptr = nullptr;
+            dictionary_type* m_dictionary_ptr = nullptr;
             color_type* m_color_ptr = nullptr;
 #endif
         private:
@@ -203,7 +220,8 @@ namespace uva
                 sizeof(integer_type),
                 sizeof(real_type),
                 sizeof(array_type),
-                sizeof(map_type)
+                sizeof(map_type),
+                sizeof(dictionary_type),
             });
         protected:
             template<typename type>
@@ -550,7 +568,7 @@ namespace uva
             var fetch(const var& __value, const var& __default = var_type::null_type) const;
 //END ARRAY/MAP FUNCTIONS
 
-//ARRAY/STRING/MAP FUNCTIONS
+//ARRAY/STRING/MAP/DICTIONARY FUNCTIONS
             /**
              *  Erases all the elements.  Note that this function only erases the
              *  elements, and that if the elements themselves are pointers, the
@@ -565,12 +583,12 @@ namespace uva
             bool binary_search(const var& other) const;
             array_iterator insert_sorted(const var& item, bool distinct = true);
             public:
-//END ARRAY/STRING/MAP
             /**
              *  @return The number of elements contained by %var if it is a container
              *  otherwise sizeof it.
              */
             size_t size() const;
+//END ARRAY/STRING/MAP/DICTIONARY
 
 //DATE TIME FUNCTIONS
             /**
@@ -804,6 +822,11 @@ const auto& uva::core::var::as() const
 
         return cast_to<map_type>();
 
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::dictionary>()) {
+
+        return cast_to<dictionary_type>();
+        
     } else {
         return *this;
     }
@@ -841,6 +864,11 @@ bool uva::core::var::is_a() const
 
         return type == var_type::map;
 
+    }
+    else if constexpr (uva::string::function_is_same<__type, var::dictionary>()) {
+
+        return type == var_type::dictionary;
+        
     }
 
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();

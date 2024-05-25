@@ -1,5 +1,4 @@
 #include <uva/core.hpp>
-#include "core.hpp"
 
 static char s_buffer[100];
 
@@ -207,6 +206,22 @@ uva::core::var::var(const std::map<std::string, uva::core::var> &__map)
     }
 }
 
+//DICIONARY CONSTRUCTORS
+
+uva::core::var::var(dictionary_type &&__dictionary)
+{
+    construct();
+    new(m_value_ptr) dictionary_type(std::move(__dictionary));
+    type = var_type::dictionary;
+}
+
+uva::core::var::var(const dictionary_type &__dictionary)
+{
+    construct();
+    new(m_value_ptr) dictionary_type(__dictionary);
+    type = var_type::dictionary;
+}
+
 //VAR CONSTRUCTORS
 
 var::var(var&& other)
@@ -214,7 +229,7 @@ var::var(var&& other)
     reconstruct(std::move(other));
 }
 
-var::var(const var& other)
+var::var(const var &other)
 {
     reconstruct(other);
 }
@@ -238,11 +253,12 @@ void var::construct(void* __ptr)
     m_value_ptr = __ptr;
 
 #if __UVA_DEBUG_LEVEL__ > 0
-    m_integer_ptr = (integer_type*)m_value_ptr;
-    m_real_ptr    = (real_type*)m_value_ptr;
-    m_string_ptr  = (string_type*)m_value_ptr;
-    m_array_ptr   = (array_type*)m_value_ptr;
-    m_map_ptr     = (map_type*)m_value_ptr;
+    m_integer_ptr    = (integer_type*)m_value_ptr;
+    m_real_ptr       = (real_type*)m_value_ptr;
+    m_string_ptr     = (string_type*)m_value_ptr;
+    m_array_ptr      = (array_type*)m_value_ptr;
+    m_map_ptr        = (map_type*)m_value_ptr;
+    m_dictionary_ptr = (dictionary_type*)m_value_ptr;
 #endif
 }
 
@@ -278,6 +294,9 @@ void var::reconstruct(const var& other)
         break;
         case var_type::map:
             new(m_value_ptr) map_type(other.as<var::map>());
+        break;
+        case var_type::dictionary:
+            new(m_value_ptr) dictionary_type(other.as<var::dictionary>());
         break;
         case var_type::undefined:
         break;
@@ -319,6 +338,9 @@ void var::reconstruct(const var_type& __type)
     break;
     case var_type::map:
         new(m_value_ptr) map_type();
+    break;
+    case var_type::dictionary:
+        new(m_value_ptr) dictionary_type();
     break;
     // case var_type::color:
     //     as<var::color>().~color();
@@ -365,6 +387,11 @@ var uva::core::var::map(map_type && __map)
     return var(std::move(__map));
 }
 
+var uva::core::var::dictionary(dictionary_type &&__dictionary)
+{
+    return var(std::move(__dictionary));
+}
+
 void var::__delete()
 {
     destruct();
@@ -390,6 +417,9 @@ void var::destruct()
             break;
             case var_type::map:
                 as<var::map>().~map();
+            break;
+            case var_type::dictionary:
+                as<var::dictionary>().~unordered_map();
             break;
             // case var_type::color:
             //     as<var::color>().~color();
@@ -732,6 +762,9 @@ var::operator bool() const
     case var_type::map:
         return as<var::map>().size();
     break;
+    case var_type::dictionary:
+        return as<var::dictionary>().size();
+    break;
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -1070,6 +1103,9 @@ bool var::operator==(const var& other) const
         case var_type::map:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
+        case var_type::dictionary:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -1105,7 +1141,8 @@ bool var::operator==(const int& other) const
         case var_type::null_type:
         case var_type::string:
         case var_type::array:
-        case var_type::map:    
+        case var_type::map:
+        case var_type::dictionary:
             return false;
         break;
         case var_type::integer:
@@ -1336,6 +1373,21 @@ const var &var::operator[](const var &__k) const
 
             return it->second;
         }
+        case var_type::dictionary:{
+            if(!__k.is_a<var_type::string>()) {
+                throw "trying to read dictionary by non string key.";
+            }
+
+            const dictionary_type& dic = as<var::dictionary>();
+
+            auto it = dic.find(__k.as<var::string>());
+
+            if(it == dic.end()) {
+                throw "trying to access var by non-existent key in const dictionary.";
+            }
+
+            return it->second;
+        }
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1350,6 +1402,13 @@ var& var::operator[](const var& __k)
         case var_type::map:
             return as<var::map>()[__k];
         break;
+        case var_type::dictionary:{
+            if(!__k.is_a<var_type::string>()) {
+                throw "trying to read dictionary by non string key.";
+            }
+
+            return as<var::dictionary>()[__k.as<var::string>()];
+        }
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -1358,27 +1417,76 @@ var& var::operator[](const var& __k)
 
 const var& var::operator[](const char* __k) const
 {
-    return (*this)[var(__k)];
+    switch(type)
+    {
+        case var_type::map:{
+            const map_type& map = as<var::map>();
+
+            auto it = map.find(__k);
+            if(it == map.end()) {
+                throw "trying to access var by non-existent key in const map.";
+            }
+
+            return it->second;
+        }
+        case var_type::dictionary:{
+            const dictionary_type& dic = as<var::dictionary>();
+
+            auto it = dic.find(__k);
+
+            if(it == dic.end()) {
+                throw "trying to access var by non-existent key in const dictionary.";
+            }
+
+            return it->second;
+        }
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 const var &uva::core::var::operator[](const char8_t *__k) const
 {
-    return (*this)[var(__k)];
+    return (*this)[(const char*)__k];
 }
 
 var& var::operator[](const char* __k)
 {
-    return (*this)[var(__k)];
+    switch(type)
+    {
+        case var_type::map:
+            return as<var::map>()[var(__k)];
+        break;
+        case var_type::dictionary:{
+            return as<var::dictionary>()[__k];
+        }
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 var &uva::core::var::operator[](const char8_t *__k)
 {
-    return (*this)[var(__k)];
+    return (*this)[(const char*)__k];
 }
 
 var &uva::core::var::operator[](const std::string &__k)
 {
-    return (*this)[var(__k)];
+    switch(type)
+    {
+        case var_type::map:
+            return as<var::map>()[var(__k)];
+        break;
+        case var_type::dictionary:{
+            return as<var::dictionary>()[__k];
+        }
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 var uva::core::var::key(const var &__v)
@@ -1844,6 +1952,9 @@ size_t var::size() const
             return as<var::array>().size();
         break;
         case var_type::map:
+            return as<var::map>().size();
+        break;
+        case var_type::dictionary:
             return as<var::map>().size();
         break;
         default:
