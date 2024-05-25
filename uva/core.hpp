@@ -275,6 +275,7 @@ namespace uva
             var& operator=(const uint64_t& i);
             var& operator=(const double& d);
             var& operator=(const char* c);
+            var& operator=(const char8_t* c);
             var& operator=(const unsigned char* c);
             var& operator=(const std::string& s);
             var& operator=(const std::u8string& s);

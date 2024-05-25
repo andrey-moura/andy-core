@@ -894,6 +894,11 @@ var& var::operator=(const char* str)
     return *this;
 }
 
+var &uva::core::var::operator=(const char8_t *c)
+{
+    return operator=((const char*)c);
+}
+
 var& var::operator=(const unsigned char* ustr)
 {
     const char* str = (const char*)ustr;
