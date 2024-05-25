@@ -1,4 +1,5 @@
 #include <uva/core.hpp>
+#include "core.hpp"
 
 static char s_buffer[100];
 
@@ -892,6 +893,11 @@ var& var::operator=(const char* str)
     }
 
     return *this;
+}
+
+var &uva::core::var::operator=(const char8_t *c)
+{
+    return operator=((const char*)c);
 }
 
 var& var::operator=(const unsigned char* ustr)
