@@ -259,6 +259,7 @@ namespace uva
             var& operator=(const char* c);
             var& operator=(const unsigned char* c);
             var& operator=(const std::string& s);
+            var& operator=(const std::u8string& s);
             var& operator=(array_type&& __array);
             var& operator=(const map_type& __map);
             var& operator=(const var_type& __type);
@@ -619,9 +620,12 @@ namespace uva
 
 //MAP FUNCTIONS
             const var& operator[](const var& __k) const;
-            var& operator[](const var& __k);
             const var& operator[](const char* __k) const;
+            const var& operator[](const char8_t* __k) const;
+
+            var& operator[](const var& __k);
             var& operator[](const char* __k);
+            var& operator[](const char8_t* __k);
             var& operator[](const std::string& __k);
 
             /**

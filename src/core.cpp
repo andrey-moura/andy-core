@@ -1,4 +1,5 @@
 #include <uva/core.hpp>
+#include "core.hpp"
 
 static char s_buffer[100];
 
@@ -888,6 +889,19 @@ var& var::operator=(const std::string& str)
     return *this;
 }
 
+var &uva::core::var::operator=(const std::u8string &s)
+{
+    if(type == var_type::string)
+    {
+        as<var::string>() = std::string((const char*)s.data(), s.size());
+    } else {
+        reconstruct<string_type>(std::string((const char*)s.data(), s.size()));
+        type = var::var_type::string;
+    }
+
+    return *this;
+}
+
 var& var::operator=(array_type&& __array)
 {
     constexpr var_type __type = var_type::array;
@@ -1347,7 +1361,17 @@ const var& var::operator[](const char* __k) const
     return (*this)[var(__k)];
 }
 
+const var &uva::core::var::operator[](const char8_t *__k) const
+{
+    return (*this)[var(__k)];
+}
+
 var& var::operator[](const char* __k)
+{
+    return (*this)[var(__k)];
+}
+
+var &uva::core::var::operator[](const char8_t *__k)
 {
     return (*this)[var(__k)];
 }
