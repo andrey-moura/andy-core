@@ -565,8 +565,6 @@ namespace uva
              *  @return A string containing the elements formated to string, separeted with @a __separator
              */
             var join(const char& __separator) const;
-
-            var fetch(const var& __value, const var& __default = var_type::null_type) const;
 //END ARRAY/MAP FUNCTIONS
 
 //ARRAY/STRING/MAP/DICTIONARY FUNCTIONS
@@ -589,6 +587,18 @@ namespace uva
              *  otherwise sizeof it.
              */
             size_t size() const;
+
+            var fetch(const var& __value, const var& __default = var_type::null_type) const;
+
+            /**
+             *  @brief Fetches the value in the map corresponding to the key in __key. If key doesn’t exist then return __default.
+             *  @param __key The key to find.
+             *  @param __default The default value to return if key doesn't exist.
+             *  @return The value corresponding to the key or __default if key doesn’t exist
+             */
+            var fetch_path(std::string_view __key, const var& __default = var_type::null_type) const;
+
+
 //END ARRAY/STRING/MAP/DICTIONARY
 
 //DATE TIME FUNCTIONS

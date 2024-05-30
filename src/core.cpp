@@ -798,15 +798,15 @@ var::operator std::vector<int>() const
 
 uva::core::var::operator uva::color() const
 {
-    switch (type)
-    {
+    // switch (type)
+    // {
     // case var_type::color:
     //     return as<var::color>();
     //     break;
-    default:
+    //default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-    }
+    //     break;
+    // }
 }
 
 var& var::operator=(const uint64_t& i)
@@ -1034,6 +1034,24 @@ var uva::core::var::operator+(const var &v) const
                 case var_type::integer:
                     return as<var::integer>() + v.as<var::integer>();
                 break;
+            };
+        break;
+        case var_type::dictionary:
+            switch(v.type)
+            {
+                case var_type::dictionary: {
+                    dictionary_type d = as<var::dictionary>();
+
+                    for(const auto& pair : v.as<var::dictionary>()) {
+                        d[pair.first] = pair.second;
+                    }
+
+                    return d;
+                }
+                    break;
+                default:
+                    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+                    break;
             };
         break;
         default:
@@ -1908,39 +1926,6 @@ var var::join(const char& __separator) const
     }
 }
 
-var var::fetch(const var& __value, const var& __default) const
-{
-    switch(type)
-    {
-        case var_type::map:
-        {
-            auto it = as<var::map>().find(__value);
-            if(it != as<var::map>().end())
-            {
-                return it->second;
-            }
-
-            return __default;
-            break;
-        }
-        case var_type::array:
-        {
-            auto& array = as<var::array>();
-            auto it = std::find(array.begin(), array.end(), __value);
-            if(it != array.end())
-            {
-                return *it;
-            }
-
-            return __default;
-            break;
-        }
-        default:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-    }
-}
-
 size_t var::size() const
 {
     switch(type)
@@ -1966,6 +1951,91 @@ size_t var::size() const
             throw std::runtime_error(std::format("undefined method 'size' for {}", type));
         break;
     }
+}
+
+var var::fetch(const var& __value, const var& __default) const
+{
+    switch(type)
+    {
+        case var_type::map:
+        {
+            auto it = as<var::map>().find(__value);
+            if(it != as<var::map>().end())
+            {
+                return it->second;
+            }
+
+            return __default;
+            break;
+        }
+        case var_type::dictionary:
+        {
+            auto it = as<var::dictionary>().find(__value.as<var::string>());
+            if(it != as<var::dictionary>().end())
+            {
+                return it->second;
+            }
+
+            return __default;
+            break;
+        }
+        case var_type::array:
+        {
+            auto& array = as<var::array>();
+            auto it = std::find(array.begin(), array.end(), __value);
+            if(it != array.end())
+            {
+                return *it;
+            }
+
+            return __default;
+            break;
+        }
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+var var::fetch_path(std::string_view __key, const var& __default) const
+{
+    const var* current_var = this;
+
+    while(__key.size()) {
+        if(current_var->type != var_type::dictionary)
+        {
+            VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(current_var->type);
+        }
+
+        const char* begin = __key.data();
+        const char* end = __key.data();
+
+        while(__key.size() && !__key.starts_with('.')) {
+            __key.remove_prefix(1);
+            end++;
+        }
+
+        if(__key.size() && __key.starts_with('.')) {
+            __key.remove_prefix(1);
+        }
+
+        std::string_view key(begin, end);
+
+        auto it = current_var->as<var::dictionary>().find(std::string(key));
+
+        if(it == current_var->as<var::dictionary>().end())
+        {
+            return __default;
+        }
+
+        if(!__key.size()) {
+            return it->second;
+        }
+
+        current_var = &it->second;
+    }
+
+    return __default;
 }
 
 var var::strftime(std::string_view __format)
