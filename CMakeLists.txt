@@ -8,7 +8,7 @@ add_library(uva-core
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
-target_link_libraries(uva-core uva-string)
+target_link_libraries(uva-core)
 
 #Tests
 if(TARGET cspec)

@@ -73,7 +73,9 @@ namespace uva
                 string,
                 array,
                 map,
+#if         UVA_HAS_DICTIONARY
                 dictionary,
+#endif
                 color,
                 max
             };
@@ -122,11 +124,12 @@ namespace uva
             var(const std::map<std::string, std::string>& __map);
             var(const std::map<std::string, var>& __map);
 
+#if         UVA_HAS_DICTIONARY
             //dictionary
 
             var(dictionary_type&& __dictionary);
             var(const dictionary_type& __dictionary);
-
+#endif
             //var
 
             var(const var& other);
@@ -163,11 +166,12 @@ namespace uva
             /// @param __map Anything which can be used to create a map
             /// @return An var equivalent to a map created with the same arguments
             static var map(map_type&& __map = map_type());
-
+#if         UVA_HAS_DICTIONARY
             /// @brief Creates a var from a dictionary-like initialization syntax
             /// @param __dictionary Anything which can be used to create a dictionary
             /// @return An var equivalent to a dictionary created with the same arguments
             static var dictionary(dictionary_type&& __dictionary = dictionary_type());
+#endif
         public:
             var_type type = var_type::null_type;
             void* m_value_ptr = nullptr;
@@ -178,7 +182,9 @@ namespace uva
             string_type* m_string_ptr = nullptr;
             array_type* m_array_ptr = nullptr;
             map_type* m_map_ptr = nullptr;
+#if         UVA_HAS_DICTIONARY
             dictionary_type* m_dictionary_ptr = nullptr;
+#endif
             color_type* m_color_ptr = nullptr;
 #endif
         private:
@@ -214,7 +220,9 @@ namespace uva
                 sizeof(real_type),
                 sizeof(array_type),
                 sizeof(map_type),
+#if         UVA_HAS_DICTIONARY
                 sizeof(dictionary_type),
+#endif
             });
         protected:
             template<typename type>
@@ -713,7 +721,7 @@ var          operator ""_percent(unsigned long long d);
         constexpr auto parse(ParseContext& ctx);
 
         template<typename FormatContext>
-        auto format(var::var_type const& v, FormatContext& ctx);
+        auto format(var::var_type const& v, FormatContext& ctx) const;
 
     };
 
@@ -724,7 +732,7 @@ var          operator ""_percent(unsigned long long d);
     }
 
     template<typename FormatContext>
-    auto std::formatter<var::var_type>::format(var::var_type const& type, FormatContext& ctx)
+    auto std::formatter<var::var_type>::format(var::var_type const& type, FormatContext& ctx) const
     {
         switch(type)
         {
@@ -832,13 +840,13 @@ const auto& uva::core::var::as() const
         return cast_to<map_type>();
 
     }
+#if UVA_HAS_DICTIONARY
     else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
 
         return cast_to<dictionary_type>();
         
-    } else {
-        return *this;
     }
+#endif
 
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
@@ -874,11 +882,13 @@ bool uva::core::var::is_a() const
         return type == var_type::map;
 
     }
+#if UVA_HAS_DICTIONARY
     else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
 
         return type == var_type::dictionary;
         
     }
+#endif
 
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 
