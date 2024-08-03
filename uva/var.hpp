@@ -25,7 +25,7 @@
 
 #undef max
 
-#if __UVA_WIN__
+#ifdef __UVA_WIN__
     #define UVA_HAS_DICTIONARY
 #endif
 
@@ -57,12 +57,11 @@ namespace uva
             using map_type = std::map<var, var>;
             using map_iterator = map_type::iterator;
             using map_const_iterator = map_type::const_iterator;
-#if         UVA_HAS_DICTIONARY
+#ifdef      UVA_HAS_DICTIONARY
             using dictionary_type = std::unordered_map<std::string, var>;
             using dictionary_iterator = dictionary_type::iterator;
             using dictionary_const_iterator = dictionary_type::const_iterator;
 #endif
-            using color_type = color;
         public:
             enum class var_type
             {
@@ -73,7 +72,7 @@ namespace uva
                 string,
                 array,
                 map,
-#if         UVA_HAS_DICTIONARY
+#ifdef          UVA_HAS_DICTIONARY
                 dictionary,
 #endif
                 color,
@@ -95,10 +94,6 @@ namespace uva
             //real
 
             var(const double& d);
-
-            //color
-
-            var(const color_type& __color);
 
             //string
 
@@ -124,7 +119,7 @@ namespace uva
             var(const std::map<std::string, std::string>& __map);
             var(const std::map<std::string, var>& __map);
 
-#if         UVA_HAS_DICTIONARY
+#ifdef      UVA_HAS_DICTIONARY
             //dictionary
 
             var(dictionary_type&& __dictionary);
@@ -166,7 +161,7 @@ namespace uva
             /// @param __map Anything which can be used to create a map
             /// @return An var equivalent to a map created with the same arguments
             static var map(map_type&& __map = map_type());
-#if         UVA_HAS_DICTIONARY
+#ifdef      UVA_HAS_DICTIONARY
             /// @brief Creates a var from a dictionary-like initialization syntax
             /// @param __dictionary Anything which can be used to create a dictionary
             /// @return An var equivalent to a dictionary created with the same arguments
@@ -182,10 +177,10 @@ namespace uva
             string_type* m_string_ptr = nullptr;
             array_type* m_array_ptr = nullptr;
             map_type* m_map_ptr = nullptr;
-#if         UVA_HAS_DICTIONARY
+#ifdef      UVA_HAS_DICTIONARY
             dictionary_type* m_dictionary_ptr = nullptr;
 #endif
-            color_type* m_color_ptr = nullptr;
+
 #endif
         private:
             void construct();
@@ -220,7 +215,7 @@ namespace uva
                 sizeof(real_type),
                 sizeof(array_type),
                 sizeof(map_type),
-#if         UVA_HAS_DICTIONARY
+#ifdef          UVA_HAS_DICTIONARY
                 sizeof(dictionary_type),
 #endif
             });
@@ -266,7 +261,6 @@ namespace uva
             operator bool() const;
             operator double() const;
             operator std::vector<int>() const;
-            operator uva::color() const;
 
             var& operator=(const var& other);
             var& operator=(var&& other);
@@ -840,7 +834,7 @@ const auto& uva::core::var::as() const
         return cast_to<map_type>();
 
     }
-#if UVA_HAS_DICTIONARY
+#ifdef UVA_HAS_DICTIONARY
     else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
 
         return cast_to<dictionary_type>();
@@ -882,7 +876,7 @@ bool uva::core::var::is_a() const
         return type == var_type::map;
 
     }
-#if UVA_HAS_DICTIONARY
+#ifdef UVA_HAS_DICTIONARY
     else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
 
         return type == var_type::dictionary;
