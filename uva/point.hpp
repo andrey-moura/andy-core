@@ -44,11 +44,13 @@ template<typename T>
             return { x+other.x, y+other.y };
         }
         basic_point<T> operator-(const basic_point<T> other) const {
-            return { x+other.x, y+other.y };
+            return { x - other.x, y - other.y };
         }
         bool operator==(const basic_point<T>& other) const {
             return x == other.x && y == other.y;
         }
+
+        
     };
     typedef basic_point<int> point;
     typedef basic_point<float> pointf;
