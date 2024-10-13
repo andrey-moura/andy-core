@@ -1,9 +1,8 @@
 project(uva-core)
 
 add_library(uva-core
-	${CMAKE_CURRENT_LIST_DIR}/uva/core.hpp
-	${CMAKE_CURRENT_LIST_DIR}/uva/color.hpp
 	${CMAKE_CURRENT_LIST_DIR}/src/core.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/var.cpp
 )
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})
