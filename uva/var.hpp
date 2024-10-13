@@ -58,10 +58,12 @@ namespace uva
             using map_iterator = map_type::iterator;
             using map_const_iterator = map_type::const_iterator;
 #ifdef      UVA_HAS_DICTIONARY
-            using dictionary_type = std::unordered_map<std::string, var>;
-            using dictionary_iterator = dictionary_type::iterator;
-            using dictionary_const_iterator = dictionary_type::const_iterator;
+            using dictionary_type           = std::unordered_map<std::string, var>;
+#else
+            using dictionary_type           = std::map<std::string, var>;
 #endif
+            using dictionary_iterator       = dictionary_type::iterator;
+            using dictionary_const_iterator = dictionary_type::const_iterator;
         public:
             enum class var_type
             {
@@ -72,9 +74,7 @@ namespace uva
                 string,
                 array,
                 map,
-#ifdef          UVA_HAS_DICTIONARY
                 dictionary,
-#endif
                 color,
                 max
             };
@@ -113,18 +113,13 @@ namespace uva
             var(const std::vector<std::string>& __array);
 
             //map
-
             var(map_type&& __map);
             var(const map_type& __map);
-            var(const std::map<std::string, std::string>& __map);
-            var(const std::map<std::string, var>& __map);
 
-#ifdef      UVA_HAS_DICTIONARY
             //dictionary
-
             var(dictionary_type&& __dictionary);
             var(const dictionary_type& __dictionary);
-#endif
+            
             //var
 
             var(const var& other);
@@ -161,12 +156,10 @@ namespace uva
             /// @param __map Anything which can be used to create a map
             /// @return An var equivalent to a map created with the same arguments
             static var map(map_type&& __map = map_type());
-#ifdef      UVA_HAS_DICTIONARY
             /// @brief Creates a var from a dictionary-like initialization syntax
             /// @param __dictionary Anything which can be used to create a dictionary
             /// @return An var equivalent to a dictionary created with the same arguments
             static var dictionary(dictionary_type&& __dictionary = dictionary_type());
-#endif
         public:
             var_type type = var_type::null_type;
             void* m_value_ptr = nullptr;
@@ -177,10 +170,7 @@ namespace uva
             string_type* m_string_ptr = nullptr;
             array_type* m_array_ptr = nullptr;
             map_type* m_map_ptr = nullptr;
-#ifdef      UVA_HAS_DICTIONARY
             dictionary_type* m_dictionary_ptr = nullptr;
-#endif
-
 #endif
         private:
             void construct();
@@ -215,9 +205,7 @@ namespace uva
                 sizeof(real_type),
                 sizeof(array_type),
                 sizeof(map_type),
-#ifdef          UVA_HAS_DICTIONARY
                 sizeof(dictionary_type),
-#endif
             });
         protected:
             template<typename type>
@@ -834,13 +822,11 @@ const auto& uva::core::var::as() const
         return cast_to<map_type>();
 
     }
-#ifdef UVA_HAS_DICTIONARY
     else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
 
         return cast_to<dictionary_type>();
         
     }
-#endif
 
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
@@ -876,13 +862,11 @@ bool uva::core::var::is_a() const
         return type == var_type::map;
 
     }
-#ifdef UVA_HAS_DICTIONARY
     else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
 
         return type == var_type::dictionary;
         
     }
-#endif
 
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 

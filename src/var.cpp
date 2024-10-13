@@ -1,4 +1,7 @@
 #include <uva/var.hpp>
+#include <uva/string.hpp>
+
+static char s_buffer[100];
 
 var operator ""_var(char const* str, std::size_t i)
 {
@@ -68,14 +71,14 @@ var::var(const char* __str)
     new(m_value_ptr) string_type(__str);
     type = var_type::string;
 }
-
+#ifdef __UVA_CPP20__
 uva::core::var::var(const char8_t *__str)
 {
     construct();
     new(m_value_ptr) string_type((const char*)__str);
     type = var_type::string;
 }
-
+#endif
 var::var(const char* __str, size_t __len)
 {
     construct();
@@ -161,48 +164,20 @@ uva::core::var::var(const map_type & __map)
     type = var_type::map;
 }
 
-uva::core::var::var(const std::map<std::string, std::string> &__map)
+//DICIONARY CONSTRUCTORS
+uva::core::var::var(dictionary_type &&__dictionary)
 {
     construct();
-    new(m_value_ptr) map_type();
-    type = var_type::map;
-
-    for(const auto& pair : __map)
-    {
-        as<var::map>().insert({var(std::move(pair.first)), var(std::move(pair.second))});
-    }
+    new(m_value_ptr) dictionary_type(std::move(__dictionary));
+    type = var_type::dictionary;
 }
 
-uva::core::var::var(const std::map<std::string, uva::core::var> &__map)
+uva::core::var::var(const dictionary_type &__dictionary)
 {
     construct();
-    new(m_value_ptr) map_type();
-    type = var_type::map;
-
-    for(const auto& pair : __map)
-    {
-        as<var::map>().insert({var(std::move(pair.first)), var(std::move(pair.second))});
-    }
+    new(m_value_ptr) dictionary_type(__dictionary);
+    type = var_type::dictionary;
 }
-
-#if UVA_HAS_DICTIONARY
-    //DICIONARY CONSTRUCTORS
-
-    uva::core::var::var(dictionary_type &&__dictionary)
-    {
-        construct();
-        new(m_value_ptr) dictionary_type(std::move(__dictionary));
-        type = var_type::dictionary;
-    }
-
-    uva::core::var::var(const dictionary_type &__dictionary)
-    {
-        construct();
-        new(m_value_ptr) dictionary_type(__dictionary);
-        type = var_type::dictionary;
-    }
-
-#endif
 
 //VAR CONSTRUCTORS
 
@@ -240,9 +215,7 @@ void var::construct(void* __ptr)
     m_string_ptr     = (string_type*)m_value_ptr;
     m_array_ptr      = (array_type*)m_value_ptr;
     m_map_ptr        = (map_type*)m_value_ptr;
-    #if UVA_HAS_DICTIONARY
-        m_dictionary_ptr = (dictionary_type*)m_value_ptr;
-    #endif
+    m_dictionary_ptr = (dictionary_type*)m_value_ptr;
 #endif
 }
 
@@ -279,11 +252,9 @@ void var::reconstruct(const var& other)
         case var_type::map:
             new(m_value_ptr) map_type(other.as<var::map>());
         break;
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:
             new(m_value_ptr) dictionary_type(other.as<var::dictionary>());
         break;
-#endif
         case var_type::undefined:
         break;
         default:
@@ -325,11 +296,9 @@ void var::reconstruct(const var_type& __type)
     case var_type::map:
         new(m_value_ptr) map_type();
     break;
-#if UVA_HAS_DICTIONARY
     case var_type::dictionary:
         new(m_value_ptr) dictionary_type();
     break;
-#endif
     // case var_type::color:
     //     as<var::color>().~color();
     // break;
@@ -375,12 +344,10 @@ var uva::core::var::map(map_type && __map)
     return var(std::move(__map));
 }
 
-#if UVA_HAS_DICTIONARY
 var uva::core::var::dictionary(dictionary_type &&__dictionary)
 {
     return var(std::move(__dictionary));
 }
-#endif
 
 void var::__delete()
 {
@@ -408,11 +375,13 @@ void var::destruct()
             case var_type::map:
                 as<var::map>().~map();
             break;
-#if UVA_HAS_DICTIONARY
             case var_type::dictionary:
-                as<var::dictionary>().~unordered_map();
-            break;
+#ifdef UVA_HAS_DICTIONARY
+            as<var::dictionary>().~unordered_map();
+#else
+            as<var::dictionary>().~map();
 #endif
+            break;
             // case var_type::color:
             //     as<var::color>().~color();
             // break;
@@ -754,11 +723,9 @@ var::operator bool() const
     case var_type::map:
         return as<var::map>().size();
     break;
-#if UVA_HAS_DICTIONARY
     case var_type::dictionary:
         return as<var::dictionary>().size();
     break;
-#endif
     default:
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -788,19 +755,6 @@ var::operator std::vector<int>() const
     } else {
         VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
     }
-}
-
-uva::core::var::operator uva::color() const
-{
-    // switch (type)
-    // {
-    // case var_type::color:
-    //     return as<var::color>();
-    //     break;
-    //default:
-        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-    //     break;
-    // }
 }
 
 var& var::operator=(const uint64_t& i)
@@ -888,11 +842,12 @@ var& var::operator=(const char* str)
     return *this;
 }
 
+#ifdef __UVA_CPP20__
 var &uva::core::var::operator=(const char8_t *c)
 {
     return operator=((const char*)c);
 }
-
+#endif
 var& var::operator=(const unsigned char* ustr)
 {
     const char* str = (const char*)ustr;
@@ -920,7 +875,7 @@ var& var::operator=(const std::string& str)
 
     return *this;
 }
-
+#ifdef __UVA_CPP20__
 var &uva::core::var::operator=(const std::u8string &s)
 {
     if(type == var_type::string)
@@ -933,6 +888,7 @@ var &uva::core::var::operator=(const std::u8string &s)
 
     return *this;
 }
+#endif
 
 var& var::operator=(array_type&& __array)
 {
@@ -1030,7 +986,6 @@ var uva::core::var::operator+(const var &v) const
                 break;
             };
         break;
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:
             switch(v.type)
             {
@@ -1049,11 +1004,12 @@ var uva::core::var::operator+(const var &v) const
                     break;
             };
         break;
-#endif
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
     }
+
+    return 0;
 }
 
 var &uva::core::var::operator++()
@@ -1122,11 +1078,9 @@ bool var::operator==(const var& other) const
         case var_type::map:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
-#endif
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -1163,11 +1117,9 @@ bool var::operator==(const int& other) const
         case var_type::string:
         case var_type::array:
         case var_type::map:
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:
             return false;
         break;
-#endif
         case var_type::integer:
             return as<var::integer>() == other;
         break;
@@ -1232,12 +1184,12 @@ bool uva::core::var::operator!=(const char *s) const
         break;
     }
 }
-
+#ifdef __UVA_CPP20__
 bool uva::core::var::operator!=(const char8_t *s) const
 {
     return as<var::string>() != (const char *)s;
 }
-
+#endif
 bool var::operator!=(const std::string& s) const
 {
     return as<var::string>() != s;
@@ -1396,7 +1348,6 @@ const var &var::operator[](const var &__k) const
 
             return it->second;
         }
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:{
             if(!__k.is_a<var_type::string>()) {
                 throw "trying to read dictionary by non string key.";
@@ -1412,7 +1363,6 @@ const var &var::operator[](const var &__k) const
 
             return it->second;
         }
-#endif
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
@@ -1427,7 +1377,6 @@ var& var::operator[](const var& __k)
         case var_type::map:
             return as<var::map>()[__k];
         break;
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:{
             if(!__k.is_a<var_type::string>()) {
                 throw "trying to read dictionary by non string key.";
@@ -1435,7 +1384,6 @@ var& var::operator[](const var& __k)
 
             return as<var::dictionary>()[__k.as<var::string>()];
         }
-#endif
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -1456,7 +1404,6 @@ const var& var::operator[](const char* __k) const
 
             return it->second;
         }
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:{
             const dictionary_type& dic = as<var::dictionary>();
 
@@ -1468,42 +1415,42 @@ const var& var::operator[](const char* __k) const
 
             return it->second;
         }
-#endif
         break;
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
     }
 }
-
+#ifdef __UVA_CPP20__
 const var &uva::core::var::operator[](const char8_t *__k) const
 {
     return (*this)[(const char*)__k];
 }
-
+#endif
 var& var::operator[](const char* __k)
 {
     switch(type)
     {
-        case var_type::map:
-            return as<var::map>()[var(__k)];
+        case var_type::map: {
+            map_type& map = as<var::map>();
+            var& v = map[var(__k)];
+            return v;
+        }
         break;
-#if UVA_HAS_DICTIONARY
-        case var_type::dictionary:{
+        case var_type::dictionary:{ 
             return as<var::dictionary>()[__k];
         }
-#endif
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
     }
 }
-
+#ifdef __UVA_CPP20__
 var &uva::core::var::operator[](const char8_t *__k)
 {
     return (*this)[(const char*)__k];
 }
-
+#endif
 var &uva::core::var::operator[](const std::string &__k)
 {
     switch(type)
@@ -1511,11 +1458,9 @@ var &uva::core::var::operator[](const std::string &__k)
         case var_type::map:
             return as<var::map>()[var(__k)];
         break;
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:{
             return as<var::dictionary>()[__k];
         }
-#endif
         default:
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
@@ -1910,32 +1855,6 @@ bool uva::core::var::includes(const var & value) const
     return false;
 }
 
-var var::join_array(const char& __separator) const
-{ 
-    return uva::string::join(as<var::array>(), __separator);
-}
-var var::join_map(const char& __separator) const
-{
-    //return uva::string::join(map, __separator);
-    return "";
-}
-
-var var::join(const char& __separator) const
-{
-    switch(type)
-    {
-        case var_type::array:
-            return join_array(__separator);
-        break;
-        case var_type::map:
-            return join_map(__separator);
-        break;
-        default:
-            throw std::runtime_error(std::format("undefined method 'join' for {}", type));
-        break;
-    }
-}
-
 size_t var::size() const
 {
     switch(type)
@@ -1954,11 +1873,9 @@ size_t var::size() const
         case var_type::map:
             return as<var::map>().size();
         break;
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:
             return as<var::map>().size();
         break;
-#endif
         default:
             throw std::runtime_error(std::format("undefined method 'size' for {}", type));
         break;
@@ -1980,7 +1897,6 @@ var var::fetch(const var& __value, const var& __default) const
             return __default;
             break;
         }
-#if UVA_HAS_DICTIONARY
         case var_type::dictionary:
         {
             auto it = as<var::dictionary>().find(__value.as<var::string>());
@@ -1992,7 +1908,6 @@ var var::fetch(const var& __value, const var& __default) const
             return __default;
             break;
         }
-#endif
         case var_type::array:
         {
             auto& array = as<var::array>();
@@ -2011,48 +1926,46 @@ var var::fetch(const var& __value, const var& __default) const
     }
 }
 
-#if UVA_HAS_DICTIONARY
-    var var::fetch_path(std::string_view __key, const var& __default) const
-    {
-        const var* current_var = this;
+var var::fetch_path(std::string_view __key, const var& __default) const
+{
+    const var* current_var = this;
 
-        while(__key.size()) {
-            if(current_var->type != var_type::dictionary)
-            {
-                VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(current_var->type);
-            }
-
-            const char* begin = __key.data();
-            const char* end = __key.data();
-
-            while(__key.size() && !__key.starts_with('.')) {
-                __key.remove_prefix(1);
-                end++;
-            }
-
-            if(__key.size() && __key.starts_with('.')) {
-                __key.remove_prefix(1);
-            }
-
-            std::string_view key(begin, end);
-
-            auto it = current_var->as<var::dictionary>().find(std::string(key));
-
-            if(it == current_var->as<var::dictionary>().end())
-            {
-                return __default;
-            }
-
-            if(!__key.size()) {
-                return it->second;
-            }
-
-            current_var = &it->second;
+    while(__key.size()) {
+        if(current_var->type != var_type::dictionary)
+        {
+            VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(current_var->type);
         }
 
-        return __default;
+        const char* begin = __key.data();
+        const char* end = __key.data();
+
+        while(__key.size() && !__key.starts_with('.')) {
+            __key.remove_prefix(1);
+            end++;
+        }
+
+        if(__key.size() && __key.starts_with('.')) {
+            __key.remove_prefix(1);
+        }
+
+        std::string_view key(begin, end - begin);
+
+        auto it = current_var->as<var::dictionary>().find(std::string(key));
+
+        if(it == current_var->as<var::dictionary>().end())
+        {
+            return __default;
+        }
+
+        if(!__key.size()) {
+            return it->second;
+        }
+
+        current_var = &it->second;
     }
-#endif
+
+    return __default;
+}
 
 var var::strftime(std::string_view __format)
 {
@@ -2159,6 +2072,8 @@ bool uva::core::var::ends_with(const var& sufix) const
             VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
         break;
     }
+
+    return false;
 }
 
 //END VAR
