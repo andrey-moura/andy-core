@@ -754,7 +754,7 @@ var          operator ""_percent(unsigned long long d);
 
     template <>
     struct std::formatter<var::var_type> : std::formatter<std::string> {
-        auto format(var::var_type type, format_context& ctx) {
+        auto format(var::var_type type, format_context& ctx) const {
             switch(type)
             {
                 case var::var_type::null_type:
