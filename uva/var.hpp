@@ -11,7 +11,6 @@
 #include <initializer_list>
 #include <filesystem>
 #include <map>
-#include <unordered_map>
 
 /* uva includes */
 #include <uva.hpp>
@@ -25,14 +24,80 @@
 
 #undef max
 
-#ifdef __UVA_WIN__
-    #define UVA_HAS_DICTIONARY
-#endif
-
 namespace uva
 {
     namespace core
     {
+        // A simple dictionary class. It will be optimized later.
+        template<typename ktype, typename vtype>
+        class basic_dictionary
+        {
+        protected:
+            std::vector<std::pair<ktype, vtype>> m_data;
+        public:
+            void insert(std::pair<ktype, vtype> __pair)
+            {
+                m_data.push_back(std::move(__pair));
+            }
+
+            size_t size() const
+            {
+                return m_data.size();
+            }
+
+            const vtype& operator[](const ktype& key) const
+            {
+                auto it = find(key);
+                return m_data.at(it);
+            }
+
+            vtype& operator[](const ktype& key)
+            {
+                auto it = find(key);
+
+                if(it == m_data.end())
+                {
+                    m_data.push_back({ key, vtype() });
+                    return m_data.back().second;
+                }
+
+                return it->second;
+            }
+
+            auto begin()
+            {
+                return m_data.begin();
+            }
+
+            auto end()
+            {
+                return m_data.end();
+            }
+
+            const auto begin() const
+            {
+                return m_data.begin();
+            }
+
+            const auto end() const
+            {
+                return m_data.end();
+            }
+
+            auto find(const ktype& key)
+            {
+                return std::find_if(m_data.begin(), m_data.end(), [&key](const std::pair<ktype, vtype>& __pair) {
+                    return __pair.first == key;
+                });
+            }
+
+            const auto find(const ktype& key) const
+            {
+                return std::find_if(m_data.begin(), m_data.end(), [&key](const std::pair<ktype, vtype>& __pair) {
+                    return __pair.first == key;
+                });
+            }
+        };
         class var;
         struct times_helper
         {
@@ -57,13 +122,8 @@ namespace uva
             using map_type = std::map<var, var>;
             using map_iterator = map_type::iterator;
             using map_const_iterator = map_type::const_iterator;
-#ifdef      UVA_HAS_DICTIONARY
-            using dictionary_type           = std::unordered_map<std::string, var>;
-#else
-            using dictionary_type           = std::map<std::string, var>;
-#endif
-            using dictionary_iterator       = dictionary_type::iterator;
-            using dictionary_const_iterator = dictionary_type::const_iterator;
+
+            using dictionary_type           = basic_dictionary<var, var>;
         public:
             enum class var_type
             {
@@ -101,9 +161,13 @@ namespace uva
 #ifdef __UVA_CPP20__
             var(const char8_t* __str);
 #endif
+#ifdef __UVA_CPP17__
+            var(std::string_view __str);
+#endif
             var(const char* str, size_t i);
             var(const string_type& _str);
             var(string_type&& _str);
+            
 
             //array
 

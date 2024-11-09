@@ -71,6 +71,7 @@ var::var(const char* __str)
     new(m_value_ptr) string_type(__str);
     type = var_type::string;
 }
+
 #ifdef __UVA_CPP20__
 uva::core::var::var(const char8_t *__str)
 {
@@ -79,7 +80,17 @@ uva::core::var::var(const char8_t *__str)
     type = var_type::string;
 }
 #endif
-var::var(const char* __str, size_t __len)
+
+#ifdef __UVA_CPP17__
+uva::core::var::var(std::string_view __str)
+{
+    construct();
+    new(m_value_ptr) string_type(__str);
+    type = var_type::string;
+}
+#endif
+
+var::var(const char *__str, size_t __len)
 {
     construct();
     new(m_value_ptr) string_type(__str, __len);
@@ -376,11 +387,7 @@ void var::destruct()
                 as<var::map>().~map();
             break;
             case var_type::dictionary:
-#ifdef UVA_HAS_DICTIONARY
-            as<var::dictionary>().~unordered_map();
-#else
-            as<var::dictionary>().~map();
-#endif
+                as<var::dictionary>().~basic_dictionary();
             break;
             // case var_type::color:
             //     as<var::color>().~color();
@@ -1355,7 +1362,7 @@ const var &var::operator[](const var &__k) const
 
             const dictionary_type& dic = as<var::dictionary>();
 
-            auto it = dic.find(__k.as<var::string>());
+            auto it = dic.find(__k);
 
             if(it == dic.end()) {
                 throw "trying to access var by non-existent key in const dictionary.";
@@ -1421,12 +1428,14 @@ const var& var::operator[](const char* __k) const
         break;
     }
 }
+
 #ifdef __UVA_CPP20__
 const var &uva::core::var::operator[](const char8_t *__k) const
 {
     return (*this)[(const char*)__k];
 }
 #endif
+
 var& var::operator[](const char* __k)
 {
     switch(type)
@@ -1950,7 +1959,7 @@ var var::fetch_path(std::string_view __key, const var& __default) const
 
         std::string_view key(begin, end - begin);
 
-        auto it = current_var->as<var::dictionary>().find(std::string(key));
+        auto it = current_var->as<var::dictionary>().find(var(key));
 
         if(it == current_var->as<var::dictionary>().end())
         {
