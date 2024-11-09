@@ -226,7 +226,15 @@ namespace uva
             static var dictionary(dictionary_type&& __dictionary = dictionary_type());
         public:
             var_type type = var_type::null_type;
-            void* m_value_ptr = nullptr;
+            static constexpr size_t size_for_buffer = std::max({   
+                sizeof(string_type),
+                sizeof(integer_type),
+                sizeof(real_type),
+                sizeof(array_type),
+                sizeof(map_type),
+                sizeof(dictionary_type),
+            });
+            uint8_t m_value[size_for_buffer] = {0};
             //for debugging
 #if __UVA_DEBUG_LEVEL__ >= 1
             integer_type* m_integer_ptr = nullptr;
@@ -237,45 +245,24 @@ namespace uva
             dictionary_type* m_dictionary_ptr = nullptr;
 #endif
         private:
-            void construct();
-            void construct(void* __ptr);
-            void* __construct();
+            void set_debug_pointers();
 
-            void reconstruct(const var& var);
-            void reconstruct(var&& var);
+            void reconstruct(var var);
             void reconstruct(const var_type& __type);
 
             template<typename type>
-            void reconstruct(const type& __val)
+            void reconstruct(type __val)
             {
                 destruct();
-                construct();
-                new(m_value_ptr) type(__val);
-            }
-
-            template<typename type>
-            void reconstruct(const type&& __val)
-            {
-                destruct();
-                construct();
-                new(m_value_ptr) type(std::move(__val));
+                new(m_value) type(std::move(__val));
             }
 
             void destruct();
-            void __delete();
-            static constexpr size_t size_for_buffer = std::max({   
-                sizeof(string_type),
-                sizeof(integer_type),
-                sizeof(real_type),
-                sizeof(array_type),
-                sizeof(map_type),
-                sizeof(dictionary_type),
-            });
         protected:
             template<typename type>
             type& cast_to() const
             {
-                return *((type*)m_value_ptr);
+                return *((type*)m_value);
             }
         public:
             template<auto __type>

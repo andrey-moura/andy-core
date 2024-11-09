@@ -19,28 +19,28 @@ var operator ""_percent(unsigned long long d)
 
 var::var(const bool& __boolean)
 {
-    construct();
+    set_debug_pointers();
     as<var::integer>() = __boolean;
     type = var_type::integer;
 }
 
 var::var(const int& __integer)
 {
-    construct();
+    set_debug_pointers();
     as<var::integer>() = __integer;
     type = var_type::integer;
 }
 
 var::var(const uint64_t& __integer)
 {
-    construct();
+    set_debug_pointers();
     as<var::integer>() = __integer;
     type = var_type::integer;
 }
 
 var::var(const time_t& __integer)
 {
-    construct();
+    set_debug_pointers();
     as<var::integer>() = __integer;
     type = var_type::integer;
 }
@@ -49,7 +49,7 @@ var::var(const time_t& __integer)
 
 var::var(const double& d)
 {
-    construct();
+    set_debug_pointers();
     as<var::real>() = d;
     type = var_type::real;
 }
@@ -67,15 +67,15 @@ var::var(const double& d)
 
 var::var(const char* __str)
 {
-    construct();
-    new(m_value_ptr) string_type(__str);
+    set_debug_pointers();
+    new(m_value) string_type(__str);
     type = var_type::string;
 }
 
 #ifdef __UVA_CPP20__
 uva::core::var::var(const char8_t *__str)
 {
-    construct();
+    set_debug_pointers();
     new(m_value_ptr) string_type((const char*)__str);
     type = var_type::string;
 }
@@ -84,30 +84,30 @@ uva::core::var::var(const char8_t *__str)
 #ifdef __UVA_CPP17__
 uva::core::var::var(std::string_view __str)
 {
-    construct();
-    new(m_value_ptr) string_type(__str);
+    set_debug_pointers();
+    new(m_value) string_type(__str);
     type = var_type::string;
 }
 #endif
 
 var::var(const char *__str, size_t __len)
 {
-    construct();
-    new(m_value_ptr) string_type(__str, __len);
+    set_debug_pointers();
+    new(m_value) string_type(__str, __len);
     type = var_type::string;
 }
 
 var::var(const std::string& __str)
 {
-    construct();
-    new(m_value_ptr) string_type(__str);
+    set_debug_pointers();
+    new(m_value) string_type(__str);
     type = var_type::string;
 }
 
 uva::core::var::var(string_type && __string)
 {
-    construct();
-    new(m_value_ptr) string_type(std::move(__string));
+    set_debug_pointers();
+    new(m_value) string_type(std::move(__string));
     type = var_type::string;    
 }
 
@@ -115,22 +115,22 @@ uva::core::var::var(string_type && __string)
 
 var::var(array_type&& __array)
 {
-    construct();
-    new(m_value_ptr) array_type(std::move(__array));
+    set_debug_pointers();
+    new(m_value) array_type(std::move(__array));
     type = var_type::array;
 }
 
 var::var(const array_type& __array)
 {
-    construct();
-    new(m_value_ptr) array_type(__array);
+    set_debug_pointers();
+    new(m_value) array_type(__array);
     type = var_type::array;
 }
 
 uva::core::var::var(const std::vector<int> &__array)
 {
-    construct();
-    new(m_value_ptr) array_type();
+    set_debug_pointers();
+    new(m_value) array_type();
     type = var_type::array;
 
     size_t size = __array.size();
@@ -145,8 +145,8 @@ uva::core::var::var(const std::vector<int> &__array)
 
 uva::core::var::var(const std::vector<std::string> &__array)
 {
-    construct();
-    new(m_value_ptr) array_type();
+    set_debug_pointers();
+    new(m_value) array_type();
     type = var_type::array;
 
     size_t size = __array.size();
@@ -163,30 +163,30 @@ uva::core::var::var(const std::vector<std::string> &__array)
 
 var::var(map_type&& __map)
 {
-    construct();
-    new(m_value_ptr) map_type(std::move(__map));
+    set_debug_pointers();
+    new(m_value) map_type(std::move(__map));
     type = var_type::map;
 }
 
 uva::core::var::var(const map_type & __map)
 {
-    construct();
-    new(m_value_ptr) map_type(__map);
+    set_debug_pointers();
+    new(m_value) map_type(__map);
     type = var_type::map;
 }
 
 //DICIONARY CONSTRUCTORS
 uva::core::var::var(dictionary_type &&__dictionary)
 {
-    construct();
-    new(m_value_ptr) dictionary_type(std::move(__dictionary));
+    set_debug_pointers();
+    new(m_value) dictionary_type(std::move(__dictionary));
     type = var_type::dictionary;
 }
 
 uva::core::var::var(const dictionary_type &__dictionary)
 {
-    construct();
-    new(m_value_ptr) dictionary_type(__dictionary);
+    set_debug_pointers();
+    new(m_value) dictionary_type(__dictionary);
     type = var_type::dictionary;
 }
 
@@ -194,7 +194,7 @@ uva::core::var::var(const dictionary_type &__dictionary)
 
 var::var(var&& other)
 {
-    reconstruct(std::move(other));
+    reconstruct(other);
 }
 
 var::var(const var &other)
@@ -211,36 +211,21 @@ var::var(const var_type& __type)
 
 //CONTRUCTORS HELPERS
 
-void* var::__construct()
+void var::set_debug_pointers()
 {
-    return new uint8_t[size_for_buffer];
-}
-
-void var::construct(void* __ptr)
-{
-    m_value_ptr = __ptr;
-
 #if __UVA_DEBUG_LEVEL__ > 0
-    m_integer_ptr    = (integer_type*)m_value_ptr;
-    m_real_ptr       = (real_type*)m_value_ptr;
-    m_string_ptr     = (string_type*)m_value_ptr;
-    m_array_ptr      = (array_type*)m_value_ptr;
-    m_map_ptr        = (map_type*)m_value_ptr;
-    m_dictionary_ptr = (dictionary_type*)m_value_ptr;
+    m_integer_ptr    = (integer_type*)m_value;
+    m_real_ptr       = (real_type*)m_value;
+    m_string_ptr     = (string_type*)m_value;
+    m_array_ptr      = (array_type*)m_value;
+    m_map_ptr        = (map_type*)m_value;
+    m_dictionary_ptr = (dictionary_type*)m_value;
 #endif
 }
 
-void var::construct()
-{
-    if(!m_value_ptr) {
-        construct(__construct());
-    }
-}
-
-void var::reconstruct(const var& other)
+void var::reconstruct(var other)
 {
     destruct();
-    construct();
 
     switch(other.type)
     {
@@ -255,16 +240,16 @@ void var::reconstruct(const var& other)
             as<var::real>() = other.as<var::real>();
         break;
         case var_type::string:
-            new(m_value_ptr) string_type(other.as<var::string>());
+            new(m_value) string_type(std::move(other.as<var::string>()));
         break;
         case var_type::array:
-            new(m_value_ptr) array_type(other.as<var::array>());
+            new(m_value) array_type(std::move(other.as<var::array>()));
         break;
         case var_type::map:
-            new(m_value_ptr) map_type(other.as<var::map>());
+            new(m_value) map_type(std::move(other.as<var::map>()));
         break;
         case var_type::dictionary:
-            new(m_value_ptr) dictionary_type(other.as<var::dictionary>());
+            new(m_value) dictionary_type(std::move(other.as<var::dictionary>()));
         break;
         case var_type::undefined:
         break;
@@ -276,22 +261,9 @@ void var::reconstruct(const var& other)
     type = other.type;
 }
 
-void var::reconstruct(var&& __var)
-{
-    destruct();
-
-    construct(__var.m_value_ptr);
-
-    type = __var.type;
-
-    __var.m_value_ptr = nullptr;
-    __var.type = var_type::null_type;
-}
-
 void var::reconstruct(const var_type& __type)
 {
     destruct();
-    construct();
 
     switch (__type)
     {
@@ -299,16 +271,16 @@ void var::reconstruct(const var_type& __type)
     case var_type::real:
     break;
     case var_type::string:
-        new(m_value_ptr) string_type();
+        new(m_value) string_type();
     break;
     case var_type::array:
-        new(m_value_ptr) array_type();
+        new(m_value) array_type();
     break;
     case var_type::map:
-        new(m_value_ptr) map_type();
+        new(m_value) map_type();
     break;
     case var_type::dictionary:
-        new(m_value_ptr) dictionary_type();
+        new(m_value) dictionary_type();
     break;
     // case var_type::color:
     //     as<var::color>().~color();
@@ -327,17 +299,16 @@ void var::reconstruct(const var_type& __type)
 
 var::~var()
 {
-    __delete();
 }
 
 var uva::core::var::integer(integer_type &&__integer)
 {
-    return var(std::move(__integer));
+    return var(__integer);
 }
 
 var uva::core::var::real(real_type&& i)
 {
-    return var(std::move(i));
+    return var(i);
 }
 
 var uva::core::var::string(string_type &&__string)
@@ -360,44 +331,35 @@ var uva::core::var::dictionary(dictionary_type &&__dictionary)
     return var(std::move(__dictionary));
 }
 
-void var::__delete()
-{
-    destruct();
-    delete[] (uint8_t*)m_value_ptr;
-}
-
 void var::destruct()
 {
-    if(m_value_ptr)
+    switch (type)
     {
-        switch (type)
-        {
-            case var_type::null_type:
-            break;
-            case var_type::integer:
-            case var_type::real:
-            break;
-            case var_type::string:
-                as<var::string>().~basic_string();
-            break;
-            case var_type::array:
-                as<var::array>().~vector();
-            break;
-            case var_type::map:
-                as<var::map>().~map();
-            break;
-            case var_type::dictionary:
-                as<var::dictionary>().~basic_dictionary();
-            break;
-            // case var_type::color:
-            //     as<var::color>().~color();
-            // break;
-            case var_type::undefined:
-            break;
-            default:
-                VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-            break;
-        }
+        case var_type::null_type:
+        break;
+        case var_type::integer:
+        case var_type::real:
+        break;
+        case var_type::string:
+            as<var::string>().~basic_string();
+        break;
+        case var_type::array:
+            as<var::array>().~vector();
+        break;
+        case var_type::map:
+            as<var::map>().~map();
+        break;
+        case var_type::dictionary:
+            as<var::dictionary>().~basic_dictionary();
+        break;
+        // case var_type::color:
+        //     as<var::color>().~color();
+        // break;
+        case var_type::undefined:
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
     }
 }
 
@@ -937,7 +899,7 @@ var& var::operator=(const var& other)
 
 var& var::operator=(var&& other)
 {
-    reconstruct(std::move(other));
+    reconstruct(other);
     return *this;
 }
 
