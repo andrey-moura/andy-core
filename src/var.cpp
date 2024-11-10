@@ -660,7 +660,7 @@ size_t uva::core::var::size() const
     }
 }
 
-var uva::core::var::operator[](size_t i) const
+const var& uva::core::var::operator[](size_t i) const
 {
     switch(type)
     {
@@ -670,8 +670,21 @@ var uva::core::var::operator[](size_t i) const
         case var_type::string:
             return as<var::string>()[i];
         break;
-        case var_type::map:
-            return as<var::map>()[var(i)];
+        case var_type::map: {
+            // The [] operator for map inserts a new element if the key does not exist.
+            // Since we are in const context, we can't insert a new element.
+            // So we will raise an exception if the key does not exist.
+            
+            const map_type& map = as<var::map>();
+
+            auto it = map.find(var(i));
+
+            if(it == map.end()) {
+                throw std::runtime_error(std::format("key {} not found in constant map. It cannot be auto inserted.", i));
+            }
+
+            return it->second;
+        }
         break;
         case var_type::dictionary:
             return as<var::dictionary>()[var(i)];

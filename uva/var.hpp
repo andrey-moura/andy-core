@@ -299,7 +299,7 @@ namespace uva
             size_t size() const;
             /// @brief The size of the var.
             /// @return The a element in array, map or dictionary
-            var operator[](size_t i) const;
+            const var operator[](size_t i) const;
         public:
             operator int() const;
             operator uint64_t() const;
