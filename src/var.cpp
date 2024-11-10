@@ -667,9 +667,6 @@ const var& uva::core::var::operator[](size_t i) const
         case var_type::array:
             return as<var::array>()[i];
         break;
-        case var_type::string:
-            return as<var::string>()[i];
-        break;
         case var_type::map: {
             // The [] operator for map inserts a new element if the key does not exist.
             // Since we are in const context, we can't insert a new element.
@@ -687,11 +684,11 @@ const var& uva::core::var::operator[](size_t i) const
         }
         break;
         case var_type::dictionary:
-            return as<var::dictionary>()[var(i)];
-        default:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+            //return as<var::dictionary>()[var(i)];
         break;
     }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
 var::operator int() const
@@ -1002,4 +999,39 @@ bool var::operator==(const var& other) const
 bool var::operator!=(const var& other) const
 {
     return *this != other;
+}
+
+bool uva::core::var::operator<(const var &v) const
+{
+    if(type != v.type) {
+        return type < v.type;
+    }
+
+    switch(type)
+    {
+        case var_type::null_type:
+            return false;
+        break;
+        case var_type::string:
+            return as<var::string>() < v.as<var::string>();
+        break;
+        case var_type::integer:
+            return as<var::integer>() < v.as<var::integer>();
+        break;
+        case var_type::real:
+            return as<var::real>() < v.as<var::real>();
+        break;
+        case var_type::array:
+            return as<var::array>() < v.as<var::array>();
+        break;
+        case var_type::map:
+            return as<var::map>() < v.as<var::map>();
+        break;
+        case var_type::dictionary:
+            return as<var::dictionary>() < v.as<var::dictionary>();
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }

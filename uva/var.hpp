@@ -92,7 +92,7 @@ namespace uva
                 });
             }
 
-            const auto find(const ktype& key) const
+            auto find(const ktype& key) const
             {
                 return std::find_if(m_data.begin(), m_data.end(), [&key](const std::pair<ktype, vtype>& __pair) {
                     return __pair.first == key;
@@ -102,6 +102,11 @@ namespace uva
             bool operator== (const basic_dictionary<ktype, vtype>& __dict) const
             {
                 return m_data == __dict.m_data;
+            }
+
+            bool operator<(const basic_dictionary<ktype, vtype>& __dict) const
+            {
+                return m_data < __dict.m_data;
             }
         };
         class var
@@ -299,7 +304,7 @@ namespace uva
             size_t size() const;
             /// @brief The size of the var.
             /// @return The a element in array, map or dictionary
-            const var operator[](size_t i) const;
+            const var& operator[](size_t i) const;
         public:
             operator int() const;
             operator uint64_t() const;
@@ -335,6 +340,8 @@ namespace uva
 
             bool operator==(const var& v) const;
             bool operator!=(const var& v) const;
+
+            bool operator<(const var& v) const;
 
             template<var_type out_type>
             auto move()
