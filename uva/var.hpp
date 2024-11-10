@@ -294,6 +294,12 @@ namespace uva
             std::string to_typed_s(char array_open = '{', char array_close = '}', bool double_quote = true) const;
             int64_t to_i() const;
             real_type to_f() const;
+            /// @brief The size of the var.
+            /// @return The number of elements in array, map, dictionary, or the size of the string.
+            size_t size() const;
+            /// @brief The size of the var.
+            /// @return The a element in array, map or dictionary
+            var operator[](size_t i) const;
         public:
             operator int() const;
             operator uint64_t() const;

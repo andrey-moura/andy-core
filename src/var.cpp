@@ -1,5 +1,6 @@
 #include <uva/var.hpp>
 #include <uva/string.hpp>
+#include "var.hpp"
 
 //VAR
 
@@ -636,6 +637,49 @@ var::real_type var::to_f() const
     }
 
     VAR_THROW_CANT_CAST_TO_TYPE(type, var_type::real);
+}
+
+size_t uva::core::var::size() const
+{
+    switch(type)
+    {
+        case var_type::string:
+            return as<var::string>().size();
+        break;
+        case var_type::array:
+            return as<var::array>().size();
+        break;
+        case var_type::map:
+            return as<var::map>().size();
+        break;
+        case var_type::dictionary:
+            return as<var::dictionary>().size();
+        break;
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
+}
+
+var uva::core::var::operator[](size_t i) const
+{
+    switch(type)
+    {
+        case var_type::array:
+            return as<var::array>()[i];
+        break;
+        case var_type::string:
+            return as<var::string>()[i];
+        break;
+        case var_type::map:
+            return as<var::map>()[var(i)];
+        break;
+        case var_type::dictionary:
+            return as<var::dictionary>()[var(i)];
+        default:
+            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+        break;
+    }
 }
 
 var::operator int() const
