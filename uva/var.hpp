@@ -11,6 +11,7 @@
 #include <initializer_list>
 #include <filesystem>
 #include <map>
+#include <type_traits>
 
 /* uva includes */
 #include <uva.hpp>
@@ -97,13 +98,11 @@ namespace uva
                     return __pair.first == key;
                 });
             }
-        };
-        class var;
-        struct times_helper
-        {
-            times_helper(size_t __times);
-            size_t times;
-            void operator()(std::function<void()> f) const;
+
+            bool operator== (const basic_dictionary<ktype, vtype>& __dict) const
+            {
+                return m_data == __dict.m_data;
+            }
         };
         class var
         {
@@ -146,10 +145,14 @@ namespace uva
 
             //integer
 
-            var(const bool& boolean);
-            var(const int& _integer);
-            var(const uint64_t& _integer);
-            var(const time_t& _integer);
+            // Constructor enabled if T is an integral_type
+            template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+            var(T __integer)
+            {
+                set_debug_pointers();
+                as<var::integer>() = __integer;
+                reconstruct(__integer);
+            }
 
             //real
 
@@ -186,7 +189,12 @@ namespace uva
             
             //var
 
+            /// @brief Copy constructor.
+            /// @param other The var to copy
             var(const var& other);
+
+            /// @brief Move constructor.
+            /// @param other The var to move
             var(var&& other);
 
             //var_type
@@ -247,7 +255,8 @@ namespace uva
         private:
             void set_debug_pointers();
 
-            void reconstruct(var var);
+            void reconstruct(const var& var);
+            void reconstruct(var&& var);
             void reconstruct(const var_type& __type);
 
             template<typename type>
@@ -267,20 +276,13 @@ namespace uva
         public:
             template<auto __type>
             const auto& as() const;
-            private:
-            template<typename T>
-            T& cast_to_non_const(const T& t)
-            {
-                return const_cast<T&>(t);
-            }
-            public:
+
             template<auto __type>
-            auto& as()
-            {
-                return cast_to_non_const(const_cast<const var*>(this)->as<__type>());
-            }
+            auto& as();
+        public:
             template<auto __type>
             bool is_a() const;
+
             template<auto __type>
             auto&& move()
             {
@@ -319,57 +321,18 @@ namespace uva
             var& operator=(const map_type& __map);
             var& operator=(const var_type& __type);
 
-            var operator+(const char* s) const;
-            var operator+(const std::string& s) const;
-            var operator+(const var& c) const;
-
-            var& operator++();
-
-            var& operator+=(const std::string& s);
-
             template<auto __type>
             bool typed_compare(const var& other) const
             {
                 return as<__type>() == other.as<__type>();
             }
-            bool operator==(std::string_view other) const;
-            bool operator==(const var& other) const;
-            bool operator==(const long& l) const;
-            bool operator==(const double& d) const;
-            bool operator==(const std::string& s) const;
-            bool operator==(const bool& b) const;
-            bool operator==(const int& other) const;
-            bool operator==(const array_type& other) const;
-            template<size_t N>
-            bool operator==(const char(&other)[N]) const;
+
+            bool operator==(const var& v) const;
             bool operator!=(const var& v) const;
-            bool operator!=(const double& d) const;
-            bool operator!=(const char* s) const;
-#ifdef __UVA_CPP20__
-            bool operator!=(const char8_t* s) const;
-#endif
-            bool operator!=(const std::string& s) const;
-            bool operator!=(const var_type& __type) const;
 
-            bool operator<(const int& i) const;
-            bool operator<(const time_t& i) const;
-            bool operator<(const double& d) const;
-            bool operator<(const var& other) const;
-            template<typename T>
-            bool operator>(const T& other) const
-            {
-                return ((T)*this) > other;
-            }
-
-            var operator/(const var& other) const;
             template<var_type out_type>
             auto move()
             {
-                if(out_type != type)
-                {
-                    throw std::runtime_error(std::format("cannot move var of type '{}' into {}", type, out_type));
-                } 
-
                 return std::move(as<out_type>());
             }
 //FRIEND OPERATORS BEGIN
@@ -378,350 +341,11 @@ namespace uva
                 stream << holder.to_s();
                 return stream;
             }
-            friend bool operator<(const double& d, const var& __other)
-            {
-                //return d < __other.as<var::real>();
-                return false;
-            }
-            friend std::filesystem::path operator/(const std::filesystem::path& path, const var& __other)
-            {
-                switch (__other.type)
-                {
-                case var::var_type::null_type:
-                        throw std::runtime_error("undefined method 'friend operator/(std::filesystem::path, var)' for null");
-                    break;
-                default:
-                    return path / __other.to_s();
-                    break;
-                }
-            }
-//FRIEND OPERATORS END
-
-//ARRAY FUNCTIONS
-            /**
-             *  @brief  Subscript access to the data contained in the %vector.
-             *  @param __n The index of the element for which data should be
-             *  accessed.
-             *  @return  Read-only (constant) reference to data.
-             *
-             *  This operator allows for easy, array-style, data access.
-             *  Note that data access with this operator is unchecked and
-             *  out_of_range lookups are not defined. (For checked lookups
-             *  see at().)
-             */
-            const var& operator[](const size_t& __n) const;
-
-            /**
-             *  @brief  Subscript access to the data contained in the %vector.
-             *  @param __n The index of the element for which data should be
-             *  accessed.
-             *  @return  Read/write reference to data.
-             *
-             *  This operator allows for easy, array-style, data access.
-             *  Note that data access with this operator is unchecked and
-             *  out_of_range lookups are not defined. (For checked lookups
-             *  see at().)
-             */
-            var& operator[](const size_t& __n);
-            /**
-             *  @brief  Subscript access to the data contained in the %vector.
-             *  @param __n The index of the element for which data should be
-             *  accessed.
-             *  @return  Read-only (constant) reference to data.
-             *
-             *  This operator allows for easy, array-style, data access.
-             *  Note that data access with this operator is unchecked and
-             *  out_of_range lookups are not defined. (For checked lookups
-             *  see at().)
-             */
-            const var& operator[](const int& __n) const;
-
-            /**
-             *  @brief  Subscript access to the data contained in the %vector.
-             *  @param __n The index of the element for which data should be
-             *  accessed.
-             *  @return  Read/write reference to data.
-             *
-             *  This operator allows for easy, array-style, data access.
-             *  Note that data access with this operator is unchecked and
-             *  out_of_range lookups are not defined. (For checked lookups
-             *  see at().)
-             */
-            var& operator[](const int& __n);
-
-            /**
-             *  @return         A read-only (constant) iterator that points to the first element in the %vector.
-             */
-            array_const_iterator begin() const;
-
-            /**
-             *  @return         A read/write iterator that points to the first element in the %vector.
-             */
-            array_iterator begin();
-            
-            /**
-             *  @return         A read-only (constant) iterator that points one past the last element in the %vector.
-             */
-            array_const_iterator end() const;
-            /**
-             *  @return         A read/write iterator that points one past the last element in the %vector.
-             */
-            array_iterator end();
-
-            /**
-             *  @brief  Add data to the end of the %vector.
-             *  @param  __x  Data to be added.
-             *
-             *  This is a typical stack operation.  The function creates an
-             *  element at the end of the %vector and assigns the given data
-             *  to it.  Due to the nature of a %vector this operation can be
-             *  done in constant time if the %vector has preallocated space
-             *  available.
-             */
-            void push_back(const var& __x);
-
-            /**
-             *  @brief  Move data to the end of the %vector.
-             *  @param  __x  Data to be moved.
-             *
-             *  The function moves an element to the end of the %vector.
-             *  Due to the nature of a %vector this operation can be
-             *  done in constant time if the %vector has preallocated
-             *  space available.
-             */
-            void push_back(var&& __x);
-            /**
-             *  @brief  Inserts given rvalue into %vector before specified iterator.
-             *  @param  __position  A const_iterator into the %vector.
-             *  @param  __x  Data to be inserted.
-             *  @return  An iterator that points to the inserted data.
-             *
-             *  This function will insert a copy of the given rvalue before
-             *  the specified location.  Note that this kind of operation
-             *  could be expensive for a %vector and if it is frequently
-             *  used the user should consider using std::list.
-             */
-            array_iterator insert(array_const_iterator __position, var&& __x);
-            /**
-             *  @brief  Inserts given rvalue into %vector before specified iterator.
-             *  @param  __position  A const_iterator into the %vector.
-             *  @param  __x  Data to be inserted.
-             *  @return  An iterator that points to the inserted data.
-             *
-             *  This function will insert a copy of the given rvalue before
-             *  the specified location.  Note that this kind of operation
-             *  could be expensive for a %vector and if it is frequently
-             *  used the user should consider using std::list.
-             */
-            array_iterator insert(array_iterator __position, var&& __x);
-            /**
-             *  @return true if the %vector is empty.
-             */
-            bool empty() const;
-            /// @brief Access last element in the array
-            /// @return a reference to the last element
-            var& back();
-            /**
-             *  @brief Finds the first position in which @a val could be inserted
-             *         without changing the ordering.
-             *  @param  __val     The search term.
-             *  @return         A read-only (constant) iterator pointing to the first element <em>not less
-             *                  than</em> @a val, or end() if every element is less than
-             *                  @a val.
-             */
-            array_const_iterator lower_bound(const uva::core::var& __val) const;
-
-            /**
-             *  @brief Finds the first position in which @a val could be inserted
-             *         without changing the ordering.
-             *  @param  __val     The search term.
-             *  @return         An iterator pointing to the first element <em>not less
-             *                  than</em> @a val, or end() if every element is less than
-             *                  @a val.
-             */
-            array_iterator lower_bound(const uva::core::var& __val);
-
-            array_iterator upper_bound(const uva::core::var& __val);
-
-            /**
-             *  @brief Finds the first position in which @a val could be inserted
-             *         without changing the ordering.
-             *  @param  __val     The search term.
-             *  @param __comp     A functor to use for comparisons.
-             *  @return         A read-only (constant) iterator pointing to the first element <em>not less
-             *                  than</em> @a val, or end() if every element is less than
-             *                  @a val.
-             */
-            template<typename _Compare>
-            array_const_iterator lower_bound(const uva::core::var& __val, _Compare __comp) const
-            {
-                return std::lower_bound(begin(), end(), __val, __comp);
-            }
-            /**
-             *  @brief Finds the first position in which @a val could be inserted
-             *         without changing the ordering.
-             *  @param  __val     The search term.
-             *  @param __comp     A functor to use for comparisons.
-             *  @return         An iterator pointing to the first element <em>not less
-             *                  than</em> @a val, or end() if every element is less than
-             *                  @a val.
-             */
-            template<typename _Compare>
-            array_iterator lower_bound(const uva::core::var& __val, _Compare __comp)
-            {
-                return std::lower_bound(begin(), end(), __val, __comp);
-            }
-            /**
-             *  @brief Apply a function to every element of a sequence.
-             *  @param  __f      A unary function object.
-             *
-             *  Applies the function object.
-             */
-            void each(std::function<void(const uva::core::var& value)> __f) const;
-            void each(std::function<void(uva::core::var& value)> __f);
-            void each(void (*__f)(const char&)) const;
-            private:
-            void each_array(std::function<void(const uva::core::var& value)> __f) const;
-            void each_array(std::function<void(uva::core::var& value)> __f);
-            void each_string(std::function<void(const uva::core::var& value)> __f) const;
-            void each_string(std::function<void(uva::core::var& value)> __f);
-            public:
-                template<typename T>
-                void for_each(void(*function)(T&));
-                template<typename T>
-                void for_each(void(*function)(T&, void*), void* data = nullptr);
-//END ARRAY FUNCTIONS
-                bool includes(const var& value) const;
-//ARRAY/MAP FUNCTIONS
-            private:
-                var join_array(const char& __separator) const;
-                var join_map(const char& __separator) const;
-            public:
-            /**
-             *  @brief Join all elements of self in string
-             *  @param  __separator To separe joined elements
-             *  @return A string containing the elements formated to string, separeted with @a __separator
-             */
-            var join(const char& __separator) const;
-//END ARRAY/MAP FUNCTIONS
-
-//ARRAY/STRING/MAP/DICTIONARY FUNCTIONS
-            /**
-             *  Erases all the elements.  Note that this function only erases the
-             *  elements, and that if the elements themselves are pointers, the
-             *  pointed-to memory is not touched in any way.  Managing the pointer is
-             *  the user's responsibility.
-             */
-            void clear();
-            /**
-             *   Attempt to preallocate enough memory for specified number of elements.
-            */
-            void reserve(size_t __n);
-            bool binary_search(const var& other) const;
-            array_iterator insert_sorted(const var& item, bool distinct = true);
-            public:
-            /**
-             *  @return The number of elements contained by %var if it is a container
-             *  otherwise sizeof it.
-             */
-            size_t size() const;
-
-            var fetch(const var& __value, const var& __default = var_type::null_type) const;
-
-            /**
-             *  @brief Fetches the value in the map corresponding to the key in __key. If key doesn’t exist then return __default.
-             *  @param __key The key to find.
-             *  @param __default The default value to return if key doesn't exist.
-             *  @return The value corresponding to the key or __default if key doesn’t exist
-             */
-            var fetch_path(std::string_view __key, const var& __default = var_type::null_type) const;
-
-
-//END ARRAY/STRING/MAP/DICTIONARY
-
-//DATE TIME FUNCTIONS
-            /**
-             *  @brief Formats date according to the directives in given format.
-             *  @param  __format The output format.
-             *  @return The time represented in a string according to @a __format
-             */
-            var strftime(std::string_view __format);
-
-//END DATE TIME FUNCTIONS
-
-//STRING FUNCTIONS
-            /**
-             *  @brief Converts the starting letters of all words of this string to it's uppercase representation.
-             *  @return A uppercased copy of self.
-             */
-            var capitalize();
-            /**
-             *  @brief Add suffix of plural to the word in self.
-             *  @return A pluralized copy of self.
-             */
-            var to_downcase() const;
-            /**
-             *  @brief Converts all characters in the string to it's lowercase.
-             *  @return A downcased copy of self.
-             */
-            var pluralize();
-            /**
-             *  @brief Formats @a __args according to the format in self.
-             *  @param  __args The objects to be formated.
-             *  @return The format in self with @a __args formating applied.
-             */
-            template<class... Args>
-            var format(Args... __args);
-
-            /// @brief Checks if string has a prefix
-            /// @param sv The string which this should starts with
-            /// @return True if this starts with sv, false otherwise
-            bool starts_with(std::string_view sv) const;
-            /// @brief Checks if string has a sufix
-            /// @param sv The string which this should ends with
-            /// @return True if this ends with sv, false otherwise
-            bool ends_with(std::string_view sv) const;
-
-            bool ends_with(const var& sufix) const;
-//END STRING FUNCTIONS
-
-//MAP FUNCTIONS
-            const var& operator[](const var& __k) const;
-            const var& operator[](const char* __k) const;
-
-            var& operator[](const var& __k);
-            var& operator[](const char* __k);
-            var& operator[](const std::string& __k);
-#ifdef __UVA_CPP20__
-            const var& operator[](const char8_t* __k) const;
-            var& operator[](const char8_t* __k);
-#endif
-            /**
-             *  @brief Gives the key value corresponding to the value in __v. If value doesn’t exist then return null.
-             *  @param __v value to find.
-             *  @return key corresponding to the value or nil if value doesn’t exist
-             */
-            var key(const var& __v);
-
-            /// @brief Append a string representation of this var into __str.
-            /// @param __str The string which will receive the string representation of this.
-            void append_to(std::string& __str, bool typed = false) const;
-
-            var select(bool(*selector)(const var&));
-//END MAP FUNCTIONS
         };
-
-        var now();
-        var parse_argument_list(const std::string& argument_list);
     };
 };
 
 using namespace uva::core;
-
-times_helper operator ""_times(unsigned long long times);
-var          operator ""_var(char const* str, std::size_t i);
-var          operator ""_percent(unsigned long long d);
-
 
 #ifdef USE_FMT_FORMT
     template<>
@@ -883,6 +507,46 @@ const auto& uva::core::var::as() const
 }
 
 template<auto __type>
+auto& uva::core::var::as()
+{
+    //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
+    //it throws compilation error. The function_is_same was created to allow this to work.
+
+    if constexpr (uva::function_is_same<__type, var::integer>()) {
+
+        return cast_to<integer_type>();
+
+    }
+    else if constexpr (uva::function_is_same<__type, var::real>()) {
+
+        return cast_to<real_type>();
+
+    }
+    else if constexpr (uva::function_is_same<__type, var::string>()) {
+
+        return cast_to<string_type>();
+
+    }
+    else if constexpr (uva::function_is_same<__type, var::array>()) {
+
+        return cast_to<array_type>();
+
+    }
+    else if constexpr (uva::function_is_same<__type, var::map>()) {
+
+        return cast_to<map_type>();
+
+    }
+    else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
+
+        return cast_to<dictionary_type>();
+        
+    }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+}
+
+template<auto __type>
 bool uva::core::var::is_a() const
 {
     //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
@@ -922,77 +586,6 @@ bool uva::core::var::is_a() const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 
     return false;
-}
-
-template<class... Args>
-var uva::core::var::format(Args... __args)
-{
-    switch (type)
-    {
-    case var::var_type::string:
-        return std::vformat(as<var::string>(), std::make_format_args(__args...));
-    break;
-    default:
-        VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-    break;
-    }
-}
-
-template<size_t N>
-bool uva::core::var::operator==(const char(&other)[N]) const
-{
-    switch(type)
-    {
-        case var_type::null_type:
-            return false;
-        break;
-        case var_type::string:
-            return as<var::string>() == other;
-        break;
-        default:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-    }
-
-    return false;
-}
-
-template<typename T>
-void uva::core::var::for_each(void(*function)(T&))
-{   
-    switch(type)
-    {
-        case var_type::array:
-        {
-            auto& array = as<var::array>();
-            for(size_t i = 0; i < array.size(); ++i) {
-                function(array[i]);
-            }
-        }
-        break;
-        default:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-    }
-}
-
-template<typename T>
-void uva::core::var::for_each(void(*function)(T&, void*), void* data)
-{   
-    switch(type)
-    {
-        case var_type::array:
-        {
-            auto& array = as<var::array>();
-            for(size_t i = 0; i < array.size(); ++i) {
-                function(array[i], data);
-            }
-        }
-        break;
-        default:
-            VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
-        break;
-    }
 }
 
 #define var var

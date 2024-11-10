@@ -1,7 +1,6 @@
 project(uva-core)
 
 add_library(uva-core
-	${CMAKE_CURRENT_LIST_DIR}/src/core.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/var.cpp
 )
 
