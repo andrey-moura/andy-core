@@ -1,6 +1,5 @@
 #include <uva/var.hpp>
 #include <uva/string.hpp>
-#include "var.hpp"
 
 //VAR
 
