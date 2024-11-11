@@ -156,7 +156,7 @@ namespace uva
             {
                 set_debug_pointers();
                 as<var::integer>() = __integer;
-                reconstruct(__integer);
+                type = var_type::integer;
             }
 
             //real
