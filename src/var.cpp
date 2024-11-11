@@ -7,7 +7,6 @@
 
 var::var(const double& d)
 {
-    set_debug_pointers();
     as<var::real>() = d;
     type = var_type::real;
 }
@@ -25,7 +24,6 @@ var::var(const double& d)
 
 var::var(const char* __str)
 {
-    set_debug_pointers();
     new(m_value) string_type(__str);
     type = var_type::string;
 }
@@ -33,7 +31,6 @@ var::var(const char* __str)
 #ifdef __UVA_CPP20__
 uva::core::var::var(const char8_t *__str)
 {
-    set_debug_pointers();
     new(m_value_ptr) string_type((const char*)__str);
     type = var_type::string;
 }
@@ -42,7 +39,6 @@ uva::core::var::var(const char8_t *__str)
 #ifdef __UVA_CPP17__
 uva::core::var::var(std::string_view __str)
 {
-    set_debug_pointers();
     new(m_value) string_type(__str);
     type = var_type::string;
 }
@@ -50,21 +46,18 @@ uva::core::var::var(std::string_view __str)
 
 var::var(const char *__str, size_t __len)
 {
-    set_debug_pointers();
     new(m_value) string_type(__str, __len);
     type = var_type::string;
 }
 
 var::var(const std::string& __str)
 {
-    set_debug_pointers();
     new(m_value) string_type(__str);
     type = var_type::string;
 }
 
 uva::core::var::var(string_type && __string)
 {
-    set_debug_pointers();
     new(m_value) string_type(std::move(__string));
     type = var_type::string;    
 }
@@ -73,21 +66,18 @@ uva::core::var::var(string_type && __string)
 
 var::var(array_type&& __array)
 {
-    set_debug_pointers();
     new(m_value) array_type(std::move(__array));
     type = var_type::array;
 }
 
 var::var(const array_type& __array)
 {
-    set_debug_pointers();
     new(m_value) array_type(__array);
     type = var_type::array;
 }
 
 uva::core::var::var(const std::vector<int> &__array)
 {
-    set_debug_pointers();
     new(m_value) array_type();
     type = var_type::array;
 
@@ -103,7 +93,6 @@ uva::core::var::var(const std::vector<int> &__array)
 
 uva::core::var::var(const std::vector<std::string> &__array)
 {
-    set_debug_pointers();
     new(m_value) array_type();
     type = var_type::array;
 
@@ -121,14 +110,12 @@ uva::core::var::var(const std::vector<std::string> &__array)
 
 var::var(map_type&& __map)
 {
-    set_debug_pointers();
     new(m_value) map_type(std::move(__map));
     type = var_type::map;
 }
 
 uva::core::var::var(const map_type & __map)
 {
-    set_debug_pointers();
     new(m_value) map_type(__map);
     type = var_type::map;
 }
@@ -136,14 +123,12 @@ uva::core::var::var(const map_type & __map)
 //DICIONARY CONSTRUCTORS
 uva::core::var::var(dictionary_type &&__dictionary)
 {
-    set_debug_pointers();
     new(m_value) dictionary_type(std::move(__dictionary));
     type = var_type::dictionary;
 }
 
 uva::core::var::var(const dictionary_type &__dictionary)
 {
-    set_debug_pointers();
     new(m_value) dictionary_type(__dictionary);
     type = var_type::dictionary;
 }
@@ -168,18 +153,6 @@ var::var(const var_type& __type)
 }
 
 //CONTRUCTORS HELPERS
-
-void var::set_debug_pointers()
-{
-#if __UVA_DEBUG_LEVEL__ > 0
-    m_integer_ptr    = (integer_type*)m_value;
-    m_real_ptr       = (real_type*)m_value;
-    m_string_ptr     = (string_type*)m_value;
-    m_array_ptr      = (array_type*)m_value;
-    m_map_ptr        = (map_type*)m_value;
-    m_dictionary_ptr = (dictionary_type*)m_value;
-#endif
-}
 
 void var::reconstruct(const var& other)
 {

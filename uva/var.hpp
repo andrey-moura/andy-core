@@ -154,7 +154,6 @@ namespace uva
             template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
             var(T __integer)
             {
-                set_debug_pointers();
                 as<var::integer>() = __integer;
                 type = var_type::integer;
             }
@@ -250,16 +249,14 @@ namespace uva
             uint8_t m_value[size_for_buffer] = {0};
             //for debugging
 #if __UVA_DEBUG_LEVEL__ >= 1
-            integer_type* m_integer_ptr = nullptr;
-            real_type* m_real_ptr = nullptr;
-            string_type* m_string_ptr = nullptr;
-            array_type* m_array_ptr = nullptr;
-            map_type* m_map_ptr = nullptr;
-            dictionary_type* m_dictionary_ptr = nullptr;
+            integer_type*    m_integer_ptr    = (integer_type*)m_value;
+            real_type*       m_real_ptr       = (real_type*)m_value;
+            string_type*     m_string_ptr     = (string_type*)m_value;
+            array_type*      m_array_ptr      = (array_type*)m_value;
+            map_type*        m_map_ptr        = (map_type*)m_value;
+            dictionary_type* m_dictionary_ptr = (dictionary_type*)m_value;
 #endif
         private:
-            void set_debug_pointers();
-
             void reconstruct(const var& var);
             void reconstruct(var&& var);
             void reconstruct(const var_type& __type);
