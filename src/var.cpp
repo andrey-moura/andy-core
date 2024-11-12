@@ -971,7 +971,7 @@ bool var::operator==(const var& other) const
 
 bool var::operator!=(const var& other) const
 {
-    return *this != other;
+    return !(*this == other);
 }
 
 bool uva::core::var::operator<(const var &v) const
