@@ -31,7 +31,7 @@ var::var(const char* __str)
 #ifdef __UVA_CPP20__
 uva::core::var::var(const char8_t *__str)
 {
-    new(m_value_ptr) string_type((const char*)__str);
+    new(m_value) string_type((const char*)__str);
     type = var_type::string;
 }
 #endif
