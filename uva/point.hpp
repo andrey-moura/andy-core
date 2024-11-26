@@ -8,22 +8,22 @@ template<typename T>
         T x;
         T y;
 
-        basic_point<T> ()
+        basic_point ()
             : x((T)0), y((T)0) {
                 
             }
 
-        basic_point<T>(const T& x, const T& y) 
+        basic_point(const T& x, const T& y) 
             : x(x), y(y) {
                 
             }
         template<typename OtherT>
-        basic_point<T>(const OtherT& x, const OtherT& y)
+        basic_point(const OtherT& x, const OtherT& y)
             : x((T)x), y((T)y) {
 
         }
         template<typename OtherT>
-        basic_point<T>(const basic_point<OtherT> other)
+        basic_point(const basic_point<OtherT> other)
             : x((T)other.x), y((T)other.y) {
 
         }
