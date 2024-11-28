@@ -7,9 +7,3 @@ add_library(uva-core
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 target_link_libraries(uva-core)
-
-#Tests
-if(TARGET cspec)
-	#Create tests for project
-	cspec_configure("uva-core" ${CMAKE_CURRENT_LIST_DIR} "uva-core")
-endif()
