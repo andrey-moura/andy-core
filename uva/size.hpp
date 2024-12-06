@@ -8,7 +8,11 @@ namespace uva {
         T w;
         T h;
 
-        basic_size() = default;
+        basic_size()
+            : w((T)0), h((T)0)
+        {
+
+        }
 
         basic_size(const T& __w, const T& __h)
             : w(__w), h(__h)

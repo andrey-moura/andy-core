@@ -52,8 +52,15 @@ namespace uva
         {
             return rgba < c.rgba;
         }
+        template<typename U>
+        uva::basic_color<U> operator/(const U& divisor) const
+        {
+            return { r / divisor, g / divisor, b / divisor, a / divisor };
+        }
     };
 
     using color = basic_color<uint8_t>;
     using color32 = basic_color<uint8_t>;
+    using colorf = basic_color<float>;
+    using colord = basic_color<double>;
 };
