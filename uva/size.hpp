@@ -54,6 +54,9 @@ namespace uva {
         bool operator==(const basic_size<T>& other) const {
             return other.w == w && other.h == h;
         }
+        bool operator!=(const basic_size<T>& other) const {
+            return other.w != w || other.h != h;
+        }
         bool operator<(const basic_size<T>& other) const {
             return w < other.w && h < other.h;
         }
