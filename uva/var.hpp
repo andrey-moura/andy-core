@@ -49,7 +49,13 @@ namespace uva
             const vtype& operator[](const ktype& key) const
             {
                 auto it = find(key);
-                return m_data.at(it);
+                
+                if(it == m_data.end())
+                {
+                    throw std::runtime_error(std::format("key not found in constant dictionary. It cannot be auto inserted."));
+                }
+
+                return it->second;
             }
 
             vtype& operator[](const ktype& key)
@@ -59,6 +65,22 @@ namespace uva
                 if(it == m_data.end())
                 {
                     m_data.push_back({ key, vtype() });
+                    return m_data.back().second;
+                }
+
+                return it->second;
+            }
+
+            template<typename T>
+            const vtype& operator[](const T& key)
+            {
+                auto it = std::find_if(m_data.begin(), m_data.end(), [&key](const std::pair<ktype, vtype>& __pair) {
+                    return __pair.first == key;
+                });
+
+                if(it == m_data.end())
+                {
+                    m_data.push_back({ ktype(key), vtype() });
                     return m_data.back().second;
                 }
 
@@ -299,9 +321,15 @@ namespace uva
             /// @brief The size of the var.
             /// @return The number of elements in array, map, dictionary, or the size of the string.
             size_t size() const;
-            /// @brief The size of the var.
+            /// @brief Index operator for arrays, maps, and dictionaries.
             /// @return The a element in array, map or dictionary
             const var& operator[](size_t i) const;
+            /// @brief Index operator for arrays, maps, and dictionaries.
+            /// @return The a element in array, map or dictionary
+            const var& operator[](const std::string_view& key) const;
+            /// @brief Index operator for arrays, maps, and dictionaries.
+            /// @return The a element in array, map or dictionary
+            const var& operator[](const char* key) const { return operator[](std::string_view(key)); }
         public:
             operator int() const;
             operator uint64_t() const;
@@ -336,6 +364,7 @@ namespace uva
             }
 
             bool operator==(const var& v) const;
+            bool operator==(std::string_view s) const;
             bool operator!=(const var& v) const;
 
             bool operator<(const var& v) const;

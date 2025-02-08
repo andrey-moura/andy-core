@@ -663,6 +663,18 @@ const var& uva::core::var::operator[](size_t i) const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
+const var& uva::core::var::operator[](const std::string_view& s) const
+{
+    switch(type)
+    {
+        case var_type::dictionary:
+            return as<var::dictionary>()[s];
+        break;
+    }
+
+    VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
+}
+
 var::operator int() const
 {
     return (int)as<var::integer>();
@@ -929,6 +941,15 @@ var& var::operator=(const var_type& __type)
 {
     reconstruct(__type);
     return *this;
+}
+
+bool var::operator==(std::string_view other) const
+{
+    if(type != var_type::string) {
+        return false;
+    }
+
+    return as<var::string>() == other;
 }
 
 bool var::operator==(const var& other) const
