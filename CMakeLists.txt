@@ -13,4 +13,4 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(uva-core)
 
 install(TARGETS uva-core DESTINATION lib)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/uva DESTINATION include/uva)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/uva DESTINATION include)
