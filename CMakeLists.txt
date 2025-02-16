@@ -12,5 +12,11 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 target_link_libraries(uva-core)
 
+install(TARGETS uva-core EXPORT uva-coreTargets)
+install(EXPORT uva-coreTargets
+    FILE uva-coreTargets.cmake
+    NAMESPACE uva::
+    DESTINATION lib/cmake/uva-core
+)
 install(TARGETS uva-core DESTINATION lib)
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/uva DESTINATION include)
