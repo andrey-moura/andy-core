@@ -87,6 +87,21 @@ namespace uva
                 return it->second;
             }
 
+            template<typename T>
+            const vtype& operator[](const T& key) const
+            {
+                auto it = std::find_if(m_data.begin(), m_data.end(), [&key](const std::pair<ktype, vtype>& __pair) {
+                    return __pair.first == key;
+                });
+
+                if(it == m_data.end())
+                {
+                    throw std::runtime_error(std::format("key not found in constant dictionary. It cannot be auto inserted."));
+                }
+
+                return it->second;
+            }
+            
             auto begin()
             {
                 return m_data.begin();
