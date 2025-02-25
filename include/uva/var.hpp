@@ -189,11 +189,7 @@ namespace uva
 
             // Constructor enabled if T is an integral_type
             template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-            var(T __integer)
-            {
-                as<var::integer>() = __integer;
-                type = var_type::integer;
-            }
+            var(T __integer);
 
             //real
 
@@ -640,6 +636,13 @@ bool uva::core::var::is_a() const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 
     return false;
+}
+
+template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+var::var(T __integer)
+{
+    as<var::integer>() = __integer;
+    type = var_type::integer;
 }
 
 #define var var
