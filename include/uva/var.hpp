@@ -638,7 +638,7 @@ bool uva::core::var::is_a() const
     return false;
 }
 
-template<typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+template<typename T, typename>
 var::var(T __integer)
 {
     as<var::integer>() = __integer;
