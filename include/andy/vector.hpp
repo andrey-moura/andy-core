@@ -1,6 +1,6 @@
 #pragma once
 
-namespace uva
+namespace andy
 {
     template<typename T>
     class basic_vector_3
@@ -61,4 +61,4 @@ namespace uva
     using vector = vector3f;
 
     using vector2f = basic_vector_2<float>;
-}; // namespace uva
+}; // namespace andy

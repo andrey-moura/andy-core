@@ -13,9 +13,9 @@
 #include <map>
 #include <type_traits>
 
-/* uva includes */
-#include <uva.hpp>
-#include <uva/format.hpp>
+/* andy includes */
+#include <andy.hpp>
+#include <andy/format.hpp>
 
 #define VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(__type) throw std::runtime_error(std::format("undefined method '{}' for {}", UVA_FUNCTION_NAME, __type));
 #define VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE() VAR_THROW_UNDEFINED_METHOD_FOR_TYPE(type)
@@ -25,7 +25,7 @@
 
 #undef max
 
-namespace uva
+namespace andy
 {
     namespace core
     {
@@ -395,7 +395,7 @@ namespace uva
     };
 };
 
-using namespace uva::core;
+using namespace andy::core;
 
 #ifdef USE_FMT_FORMT
     template<>
@@ -517,37 +517,37 @@ using namespace uva::core;
 //methods that call std::format on var_type must be defined after the formatter. As templates need to be in header, define them here.
 //Note: VAR_THROW_UNDEFINED_METHOD_FOR_TYPE does uses var_type formatter.
 template<auto __type>
-const auto& uva::core::var::as() const
+const auto& andy::core::var::as() const
 {
     //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
     //it throws compilation error. The function_is_same was created to allow this to work.
 
-    if constexpr (uva::function_is_same<__type, var::integer>()) {
+    if constexpr (andy::function_is_same<__type, var::integer>()) {
 
         return cast_to<integer_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::real>()) {
+    else if constexpr (andy::function_is_same<__type, var::real>()) {
 
         return cast_to<real_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::string>()) {
+    else if constexpr (andy::function_is_same<__type, var::string>()) {
 
         return cast_to<string_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::array>()) {
+    else if constexpr (andy::function_is_same<__type, var::array>()) {
 
         return cast_to<array_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::map>()) {
+    else if constexpr (andy::function_is_same<__type, var::map>()) {
 
         return cast_to<map_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
+    else if constexpr (andy::function_is_same<__type, var::dictionary>()) {
 
         return cast_to<dictionary_type>();
         
@@ -557,37 +557,37 @@ const auto& uva::core::var::as() const
 }
 
 template<auto __type>
-auto& uva::core::var::as()
+auto& andy::core::var::as()
 {
     //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
     //it throws compilation error. The function_is_same was created to allow this to work.
 
-    if constexpr (uva::function_is_same<__type, var::integer>()) {
+    if constexpr (andy::function_is_same<__type, var::integer>()) {
 
         return cast_to<integer_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::real>()) {
+    else if constexpr (andy::function_is_same<__type, var::real>()) {
 
         return cast_to<real_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::string>()) {
+    else if constexpr (andy::function_is_same<__type, var::string>()) {
 
         return cast_to<string_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::array>()) {
+    else if constexpr (andy::function_is_same<__type, var::array>()) {
 
         return cast_to<array_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::map>()) {
+    else if constexpr (andy::function_is_same<__type, var::map>()) {
 
         return cast_to<map_type>();
 
     }
-    else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
+    else if constexpr (andy::function_is_same<__type, var::dictionary>()) {
 
         return cast_to<dictionary_type>();
         
@@ -597,37 +597,37 @@ auto& uva::core::var::as()
 }
 
 template<auto __type>
-bool uva::core::var::is_a() const
+bool andy::core::var::is_a() const
 {
     //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
     //it throws compilation error. The function_is_same was created to allow this to work.
 
-    if constexpr (uva::function_is_same<__type, var::integer>()) {
+    if constexpr (andy::function_is_same<__type, var::integer>()) {
 
         return type == var_type::integer;
 
     }
-    else if constexpr (uva::function_is_same<__type, var::real>()) {
+    else if constexpr (andy::function_is_same<__type, var::real>()) {
 
         return type == var_type::real;
 
     }
-    else if constexpr (uva::function_is_same<__type, var::string>()) {
+    else if constexpr (andy::function_is_same<__type, var::string>()) {
 
         return type == var_type::string;
 
     }
-    else if constexpr (uva::function_is_same<__type, var::array>()) {
+    else if constexpr (andy::function_is_same<__type, var::array>()) {
 
         return type == var_type::array;
 
     }
-    else if constexpr (uva::function_is_same<__type, var::map>()) {
+    else if constexpr (andy::function_is_same<__type, var::map>()) {
 
         return type == var_type::map;
 
     }
-    else if constexpr (uva::function_is_same<__type, var::dictionary>()) {
+    else if constexpr (andy::function_is_same<__type, var::dictionary>()) {
 
         return type == var_type::dictionary;
         

@@ -1,21 +1,21 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(uva-core)
+project(andy-core)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_library(uva-core OBJECT
+add_library(andy-core OBJECT
 	${CMAKE_CURRENT_LIST_DIR}/src/var.cpp
 )
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
-target_link_libraries(uva-core)
+target_link_libraries(andy-core)
 
-# install(TARGETS uva-core EXPORT uva-coreTargets)
-# install(EXPORT uva-coreTargets
-#     FILE uva-coreTargets.cmake
-#     DESTINATION lib/cmake/uva-core
+# install(TARGETS andy-core EXPORT andy-coreTargets)
+# install(EXPORT andy-coreTargets
+#     FILE andy-coreTargets.cmake
+#     DESTINATION lib/cmake/andy-core
 # )
-# install(TARGETS uva-core DESTINATION lib)
-# install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/uva DESTINATION include)
+# install(TARGETS andy-core DESTINATION lib)
+# install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/andy DESTINATION include)

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <uva/size.hpp>
-#include <uva/point.hpp>
+#include <andy/size.hpp>
+#include <andy/point.hpp>
 
-namespace uva
+namespace andy
 {
     template<typename T>
     struct basic_rect
@@ -25,8 +25,8 @@ namespace uva
             T h;
             };
             struct {
-                uva::basic_point<T> position;
-                uva::basic_size<T>  size;
+                andy::basic_point<T> position;
+                andy::basic_size<T>  size;
             };
         };
     };
