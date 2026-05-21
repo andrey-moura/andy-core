@@ -1,6 +1,6 @@
 #pragma once
 
-namespace andy
+namespace lavi
 {
     template<typename T>
     class basic_vector_3
@@ -61,4 +61,4 @@ namespace andy
     using vector = vector3f;
 
     using vector2f = basic_vector_2<float>;
-}; // namespace andy
+}; // namespace lavi

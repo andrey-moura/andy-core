@@ -3,7 +3,7 @@
 #include <andy/size.hpp>
 #include <andy/point.hpp>
 
-namespace andy
+namespace lavi
 {
     template<typename T>
     struct basic_rect
@@ -25,8 +25,8 @@ namespace andy
             T h;
             };
             struct {
-                andy::basic_point<T> position;
-                andy::basic_size<T>  size;
+                lavi::basic_point<T> position;
+                lavi::basic_size<T>  size;
             };
         };
     };

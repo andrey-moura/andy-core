@@ -12,7 +12,7 @@ var::var(const double& d)
 
 //COLOR CONSTRUCTORS
 
-// andy::core::var::var(const color_type &__color)
+// lavi::core::var::var(const color_type &__color)
 // {
 //     construct();
 //     new(m_value_ptr) color_type(__color);
@@ -28,7 +28,7 @@ var::var(const char* __str)
 }
 
 #ifdef __UVA_CPP20__
-andy::core::var::var(const char8_t *__str)
+lavi::core::var::var(const char8_t *__str)
 {
     new(m_value) string_type((const char*)__str);
     type = var_type::string;
@@ -36,7 +36,7 @@ andy::core::var::var(const char8_t *__str)
 #endif
 
 #ifdef __UVA_CPP17__
-andy::core::var::var(std::string_view __str)
+lavi::core::var::var(std::string_view __str)
 {
     new(m_value) string_type(__str);
     type = var_type::string;
@@ -55,7 +55,7 @@ var::var(const std::string& __str)
     type = var_type::string;
 }
 
-andy::core::var::var(string_type && __string)
+lavi::core::var::var(string_type && __string)
 {
     new(m_value) string_type(std::move(__string));
     type = var_type::string;    
@@ -75,7 +75,7 @@ var::var(const array_type& __array)
     type = var_type::array;
 }
 
-andy::core::var::var(const std::vector<int> &__array)
+lavi::core::var::var(const std::vector<int> &__array)
 {
     new(m_value) array_type();
     type = var_type::array;
@@ -90,7 +90,7 @@ andy::core::var::var(const std::vector<int> &__array)
     }
 }
 
-andy::core::var::var(const std::vector<std::string> &__array)
+lavi::core::var::var(const std::vector<std::string> &__array)
 {
     new(m_value) array_type();
     type = var_type::array;
@@ -113,20 +113,20 @@ var::var(map_type&& __map)
     type = var_type::map;
 }
 
-andy::core::var::var(const map_type & __map)
+lavi::core::var::var(const map_type & __map)
 {
     new(m_value) map_type(__map);
     type = var_type::map;
 }
 
 //DICIONARY CONSTRUCTORS
-andy::core::var::var(dictionary_type &&__dictionary)
+lavi::core::var::var(dictionary_type &&__dictionary)
 {
     new(m_value) dictionary_type(std::move(__dictionary));
     type = var_type::dictionary;
 }
 
-andy::core::var::var(const dictionary_type &__dictionary)
+lavi::core::var::var(const dictionary_type &__dictionary)
 {
     new(m_value) dictionary_type(__dictionary);
     type = var_type::dictionary;
@@ -269,32 +269,32 @@ var::~var()
 {
 }
 
-var andy::core::var::integer(integer_type &&__integer)
+var lavi::core::var::integer(integer_type &&__integer)
 {
     return var(__integer);
 }
 
-var andy::core::var::real(real_type&& i)
+var lavi::core::var::real(real_type&& i)
 {
     return var(i);
 }
 
-var andy::core::var::string(string_type &&__string)
+var lavi::core::var::string(string_type &&__string)
 {
     return var(std::move(__string));
 }
 
-var andy::core::var::array(array_type &&__array)
+var lavi::core::var::array(array_type &&__array)
 {
     return var(std::move(__array));
 }
 
-var andy::core::var::map(map_type && __map)
+var lavi::core::var::map(map_type && __map)
 {
     return var(std::move(__map));
 }
 
-var andy::core::var::dictionary(dictionary_type &&__dictionary)
+var lavi::core::var::dictionary(dictionary_type &&__dictionary)
 {
     return var(std::move(__dictionary));
 }
@@ -411,7 +411,7 @@ std::string var::to_s() const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
-std::string andy::core::var::to_typed_s(char array_open, char array_close, bool double_quote) const
+std::string lavi::core::var::to_typed_s(char array_open, char array_close, bool double_quote) const
 {
     char quote;
     char other_quote;
@@ -610,7 +610,7 @@ var::real_type var::to_f() const
     VAR_THROW_CANT_CAST_TO_TYPE(type, var_type::real);
 }
 
-size_t andy::core::var::size() const
+size_t lavi::core::var::size() const
 {
     switch(type)
     {
@@ -632,7 +632,7 @@ size_t andy::core::var::size() const
     }
 }
 
-const var& andy::core::var::operator[](size_t i) const
+const var& lavi::core::var::operator[](size_t i) const
 {
     switch(type)
     {
@@ -663,7 +663,7 @@ const var& andy::core::var::operator[](size_t i) const
     VAR_THROW_UNDEFINED_METHOD_FOR_THIS_TYPE();
 }
 
-const var& andy::core::var::operator[](const std::string_view& s) const
+const var& lavi::core::var::operator[](const std::string_view& s) const
 {
     switch(type)
     {
@@ -801,7 +801,7 @@ var& var::operator=(const bool& b)
     return *this;
 }
 
-var &andy::core::var::operator=(const int &i)
+var &lavi::core::var::operator=(const int &i)
 {
     constexpr var_type __type = var_type::integer;
 
@@ -845,7 +845,7 @@ var& var::operator=(const char* str)
 }
 
 #ifdef __UVA_CPP20__
-var &andy::core::var::operator=(const char8_t *c)
+var &lavi::core::var::operator=(const char8_t *c)
 {
     return operator=((const char*)c);
 }
@@ -879,7 +879,7 @@ var& var::operator=(const std::string& str)
     return *this;
 }
 #ifdef __UVA_CPP20__
-var &andy::core::var::operator=(const std::u8string &s)
+var &lavi::core::var::operator=(const std::u8string &s)
 {
     if(type == var_type::string)
     {
@@ -908,7 +908,7 @@ var& var::operator=(array_type&& __array)
     return *this;
 }
 
-var &andy::core::var::operator=(const map_type & __map)
+var &lavi::core::var::operator=(const map_type & __map)
 {
     constexpr var_type __type = var_type::map;
 
@@ -994,7 +994,7 @@ bool var::operator!=(const var& other) const
     return !(*this == other);
 }
 
-bool andy::core::var::operator<(const var &v) const
+bool lavi::core::var::operator<(const var &v) const
 {
     if(type != v.type) {
         return type < v.type;

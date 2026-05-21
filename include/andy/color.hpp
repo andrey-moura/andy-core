@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-namespace andy
+namespace lavi
 {
     struct color24
     {
@@ -53,7 +53,7 @@ namespace andy
             return rgba < c.rgba;
         }
         template<typename U>
-        andy::basic_color<U> operator/(const U& divisor) const
+        lavi::basic_color<U> operator/(const U& divisor) const
         {
             return { r / divisor, g / divisor, b / divisor, a / divisor };
         }

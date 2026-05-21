@@ -1,6 +1,6 @@
 #pragma once
 
-namespace andy {
+namespace lavi {
 
 template<typename T>
     struct basic_point

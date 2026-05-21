@@ -25,7 +25,7 @@
 
 #undef max
 
-namespace andy
+namespace lavi
 {
     namespace core
     {
@@ -395,7 +395,7 @@ namespace andy
     };
 };
 
-using namespace andy::core;
+using namespace lavi::core;
 
 #ifdef USE_FMT_FORMT
     template<>
@@ -517,37 +517,37 @@ using namespace andy::core;
 //methods that call std::format on var_type must be defined after the formatter. As templates need to be in header, define them here.
 //Note: VAR_THROW_UNDEFINED_METHOD_FOR_TYPE does uses var_type formatter.
 template<auto __type>
-const auto& andy::core::var::as() const
+const auto& lavi::core::var::as() const
 {
     //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
     //it throws compilation error. The function_is_same was created to allow this to work.
 
-    if constexpr (andy::function_is_same<__type, var::integer>()) {
+    if constexpr (lavi::function_is_same<__type, var::integer>()) {
 
         return cast_to<integer_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::real>()) {
+    else if constexpr (lavi::function_is_same<__type, var::real>()) {
 
         return cast_to<real_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::string>()) {
+    else if constexpr (lavi::function_is_same<__type, var::string>()) {
 
         return cast_to<string_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::array>()) {
+    else if constexpr (lavi::function_is_same<__type, var::array>()) {
 
         return cast_to<array_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::map>()) {
+    else if constexpr (lavi::function_is_same<__type, var::map>()) {
 
         return cast_to<map_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::dictionary>()) {
+    else if constexpr (lavi::function_is_same<__type, var::dictionary>()) {
 
         return cast_to<dictionary_type>();
         
@@ -557,37 +557,37 @@ const auto& andy::core::var::as() const
 }
 
 template<auto __type>
-auto& andy::core::var::as()
+auto& lavi::core::var::as()
 {
     //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
     //it throws compilation error. The function_is_same was created to allow this to work.
 
-    if constexpr (andy::function_is_same<__type, var::integer>()) {
+    if constexpr (lavi::function_is_same<__type, var::integer>()) {
 
         return cast_to<integer_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::real>()) {
+    else if constexpr (lavi::function_is_same<__type, var::real>()) {
 
         return cast_to<real_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::string>()) {
+    else if constexpr (lavi::function_is_same<__type, var::string>()) {
 
         return cast_to<string_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::array>()) {
+    else if constexpr (lavi::function_is_same<__type, var::array>()) {
 
         return cast_to<array_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::map>()) {
+    else if constexpr (lavi::function_is_same<__type, var::map>()) {
 
         return cast_to<map_type>();
 
     }
-    else if constexpr (andy::function_is_same<__type, var::dictionary>()) {
+    else if constexpr (lavi::function_is_same<__type, var::dictionary>()) {
 
         return cast_to<dictionary_type>();
         
@@ -597,37 +597,37 @@ auto& andy::core::var::as()
 }
 
 template<auto __type>
-bool andy::core::var::is_a() const
+bool lavi::core::var::is_a() const
 {
     //GCC < 12 has a bug in the constexpr operator== for function pointers. Instead of returning false,
     //it throws compilation error. The function_is_same was created to allow this to work.
 
-    if constexpr (andy::function_is_same<__type, var::integer>()) {
+    if constexpr (lavi::function_is_same<__type, var::integer>()) {
 
         return type == var_type::integer;
 
     }
-    else if constexpr (andy::function_is_same<__type, var::real>()) {
+    else if constexpr (lavi::function_is_same<__type, var::real>()) {
 
         return type == var_type::real;
 
     }
-    else if constexpr (andy::function_is_same<__type, var::string>()) {
+    else if constexpr (lavi::function_is_same<__type, var::string>()) {
 
         return type == var_type::string;
 
     }
-    else if constexpr (andy::function_is_same<__type, var::array>()) {
+    else if constexpr (lavi::function_is_same<__type, var::array>()) {
 
         return type == var_type::array;
 
     }
-    else if constexpr (andy::function_is_same<__type, var::map>()) {
+    else if constexpr (lavi::function_is_same<__type, var::map>()) {
 
         return type == var_type::map;
 
     }
-    else if constexpr (andy::function_is_same<__type, var::dictionary>()) {
+    else if constexpr (lavi::function_is_same<__type, var::dictionary>()) {
 
         return type == var_type::dictionary;
         
